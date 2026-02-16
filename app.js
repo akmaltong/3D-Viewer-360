@@ -318,35 +318,16 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
-        var videoTextureCache = {};
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Pause all existing video elements inside viewer
-                viewer.querySelectorAll('video').forEach(function(v) {
-                    try { v.pause(); } catch(e2) {}
-                });
-
-                // Create texture once per file, reuse on subsequent switches
-                if (!videoTextureCache[videoFile]) {
-                    videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
-                }
-                currentVideoTexture = videoTextureCache[videoFile];
-
+                // Always create a fresh texture — createVideoTexture handles video element lifecycle
+                currentVideoTexture = viewer.createVideoTexture(videoFile);
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
                 var vInt = parseFloat(document.getElementById('video-intensity').value);
                 screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
-
-                // Find and play the current video element
-                var videos = viewer.querySelectorAll('video');
-                videos.forEach(function(v) {
-                    if (v.src && v.src.includes(videoFile.replace('.mp4', ''))) {
-                        v.play().catch(function() {});
-                    }
-                });
-
                 console.log('Video applied: ' + videoFile);
             } catch(e) { console.warn('Failed to apply video:', e); }
         }
