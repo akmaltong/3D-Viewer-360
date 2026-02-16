@@ -1,12 +1,13 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { overflow: hidden; background: #0a0e1a; font-family: 'Segoe UI', sans-serif; height: 100vh; }
+body { overflow: hidden; background: #0a0e1a; font-family: 'Segoe UI', sans-serif; height: 100vh; height: 100dvh; }
 
-#app { position: relative; width: 100%; height: 100vh; }
+#app { position: relative; width: 100%; height: 100vh; height: 100dvh; }
 
 model-viewer {
     width: 100%; height: 100%;
     background: #0d1117;
     --poster-color: #0d1117;
+    touch-action: none;
 }
 
 /* ========== BOTTOM TOOLBAR ========== */
@@ -306,12 +307,50 @@ model-viewer {
     border: 1px solid rgba(255,255,255,0.1);
 }
 
+/* ========== HIDE model-viewer default AR button ========== */
+model-viewer::part(default-ar-button) { display: none !important; }
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 700px) {
-    .settings-panel { width: 96vw; }
+    .settings-panel {
+        width: 100vw;
+        max-width: 100vw;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        transform: none;
+        border-radius: 16px 16px 0 0;
+        max-height: 70vh;
+        overflow-y: auto;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+    }
+    .settings-panel.hidden {
+        transform: translateY(20px);
+    }
     .settings-grid { grid-template-columns: 1fr; }
     .bar-btn { width: 44px; height: 44px; }
-    .bar-btn-wide span { display: none; }
-    .tab-btn { padding: 8px 10px; font-size: 10px; }
+    .bar-btn svg { width: 18px; height: 18px; }
+    .tab-btn { padding: 8px 8px; font-size: 9px; letter-spacing: 0; }
+    .tab-btn svg { display: none; }
+    .tab-reset { font-size: 9px; }
     .nav-item { font-size: 10px; padding: 6px 10px; }
+    #hotspot-nav { top: 60px; right: 10px; }
+    #bottom-bar {
+        bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+        gap: 8px;
+        padding: 5px;
+    }
+    .tab-content { padding: 14px 12px; }
+    .setting-label { font-size: 10px; }
+    .setting-value { font-size: 11px; }
+    #fps-counter { top: 8px; right: 8px; font-size: 12px; padding: 3px 8px; }
+    .hotspot-annotation { width: 160px; font-size: 11px; padding: 8px 10px; }
+    .hotspot-dot { width: 26px; height: 26px; font-size: 11px; border-width: 2px; }
+}
+
+@media (max-width: 400px) {
+    .bar-btn { width: 40px; height: 40px; }
+    .tab-btn { padding: 6px 6px; font-size: 8px; }
+    .settings-panel { max-height: 65vh; }
 }
