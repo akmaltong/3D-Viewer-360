@@ -321,7 +321,12 @@ document.addEventListener('DOMContentLoaded', function() {
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Always create a fresh texture — createVideoTexture handles video element lifecycle
+                // Pause and remove all old video elements to avoid accumulation
+                var oldVideos = document.querySelectorAll('model-viewer video');
+                oldVideos.forEach(function(v) {
+                    try { v.pause(); v.src = ''; v.remove(); } catch(e2) {}
+                });
+
                 currentVideoTexture = viewer.createVideoTexture(videoFile);
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
