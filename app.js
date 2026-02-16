@@ -318,10 +318,23 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
+        // Videos hosted in GitHub Releases (fallback for GitHub Pages deployment)
+        var RELEASE_BASE = 'https://github.com/akmaltong/3D-Viewer-360/releases/download/v1.0/';
+        var releaseVideos = { 'video1.mp4': true, 'video2.mp4': true, 'video4.mp4': true };
+
+        function resolveVideoUrl(videoFile) {
+            // If running on github.io, use release URLs for large videos
+            if (window.location.hostname.includes('github.io') && releaseVideos[videoFile]) {
+                return RELEASE_BASE + videoFile;
+            }
+            return videoFile;
+        }
+
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                currentVideoTexture = viewer.createVideoTexture(videoFile);
+                var resolvedUrl = resolveVideoUrl(videoFile);
+                currentVideoTexture = viewer.createVideoTexture(resolvedUrl);
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
