@@ -342,23 +342,14 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('skybox-blur').oninput = function() {
             var val = parseFloat(this.value);
             document.getElementById('skybox-blur-val').textContent = val.toFixed(1);
-            // Access Three.js scene for backgroundBlurriness
             try {
                 var symbols = Object.getOwnPropertySymbols(viewer);
                 var sceneSymbol = symbols.find(function(s) { return s.description === 'scene'; });
                 if (sceneSymbol) {
-                    var mvScene = viewer[sceneSymbol];
-                    // Try to find the Three.js Scene object
-                    var innerSymbols = Object.getOwnPropertySymbols(mvScene);
-                    for (var i = 0; i < innerSymbols.length; i++) {
-                        var obj = mvScene[innerSymbols[i]];
-                        if (obj && obj.isScene && obj.backgroundBlurriness !== undefined) {
-                            obj.backgroundBlurriness = val;
-                            break;
-                        }
-                    }
+                    var scene = viewer[sceneSymbol];
+                    scene.backgroundBlurriness = val;
                 }
-            } catch(e) { console.warn('Skybox blur not supported:', e); }
+            } catch(e) { console.warn('Skybox blur error:', e); }
         };
         function updateFps() {
             if (fpsOn) {
