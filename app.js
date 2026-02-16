@@ -318,10 +318,23 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
+        var currentVideoEl = null;
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
+                // Stop and remove previous video element
+                if (currentVideoEl) {
+                    try {
+                        currentVideoEl.pause();
+                        currentVideoEl.removeAttribute('src');
+                        currentVideoEl.load();
+                        currentVideoEl.remove();
+                    } catch(e2) {}
+                }
                 currentVideoTexture = viewer.createVideoTexture(videoFile);
+                // Find the created <video> element to track it
+                var videos = viewer.querySelectorAll('video');
+                if (videos.length > 0) currentVideoEl = videos[videos.length - 1];
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
