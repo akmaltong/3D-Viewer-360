@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
             viewer.setAttribute('exposure', 1);
             viewer.exposure = 1;
             viewer.removeAttribute('auto-rotate');
-            setSlider('video-intensity', 4.5, 'video-int-val');
+            setSlider('video-intensity', 7, 'video-int-val');
             setSlider('neon-intensity', 20, 'neon-val');
             setSlider('bloom-slider', 0.1, 'bloom-val', true);
             setSlider('mat-metalness', 0.48, 'mat-metalness-val', true);
@@ -318,28 +318,35 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
-        var currentVideoEl = null;
+        var videoTextureCache = {};
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Stop and remove previous video element
-                if (currentVideoEl) {
-                    try {
-                        currentVideoEl.pause();
-                        currentVideoEl.removeAttribute('src');
-                        currentVideoEl.load();
-                        currentVideoEl.remove();
-                    } catch(e2) {}
+                // Pause all existing video elements inside viewer
+                viewer.querySelectorAll('video').forEach(function(v) {
+                    try { v.pause(); } catch(e2) {}
+                });
+
+                // Create texture once per file, reuse on subsequent switches
+                if (!videoTextureCache[videoFile]) {
+                    videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
                 }
-                currentVideoTexture = viewer.createVideoTexture(videoFile);
-                // Find the created <video> element to track it
-                var videos = viewer.querySelectorAll('video');
-                if (videos.length > 0) currentVideoEl = videos[videos.length - 1];
+                currentVideoTexture = videoTextureCache[videoFile];
+
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
                 var vInt = parseFloat(document.getElementById('video-intensity').value);
                 screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
+
+                // Find and play the current video element
+                var videos = viewer.querySelectorAll('video');
+                videos.forEach(function(v) {
+                    if (v.src && v.src.includes(videoFile.replace('.mp4', ''))) {
+                        v.play().catch(function() {});
+                    }
+                });
+
                 console.log('Video applied: ' + videoFile);
             } catch(e) { console.warn('Failed to apply video:', e); }
         }
