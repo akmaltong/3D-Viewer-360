@@ -8,23 +8,6 @@
 </head>
 <body>
 
-<div id="loading-screen">
-    <div class="loading-content">
-        <div class="loading-spinner"></div>
-        <div class="loading-text">Загрузка модели</div>
-        <div class="loading-timer" id="loading-timer">0.0 сек</div>
-    </div>
-</div>
-<script>
-(function() {
-    var start = performance.now();
-    var el = document.getElementById('loading-timer');
-    var iv = setInterval(function() {
-        el.textContent = ((performance.now() - start) / 1000).toFixed(1) + ' сек';
-    }, 100);
-    window.__loadingTimer = { interval: iv, start: start };
-})();
-</script>
 
 <div id="app">
 

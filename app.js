@@ -734,14 +734,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // === Model load ===
         viewer.addEventListener('load', function() {
-            // Dismiss loading screen
-            var ls = document.getElementById('loading-screen');
-            if (ls) {
-                if (window.__loadingTimer) clearInterval(window.__loadingTimer.interval);
-                ls.classList.add('fade-out');
-                setTimeout(function() { ls.remove(); }, 600);
-            }
-
             if (!viewer.model) return;
             allMaterials = viewer.model.materials;
 
