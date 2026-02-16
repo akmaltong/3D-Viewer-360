@@ -6,5 +6,4 @@ model-viewer-effects.js
 model-viewer-effects.umd.js
 package.json
 package-lock.json
-# video2.mp4 is too large (70MB) for GitHub
-video2.mp4
+
