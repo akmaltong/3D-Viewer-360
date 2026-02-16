@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTB Stand - 3D Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+    <model-viewer id="viewer"
+        src="VTB_StandPack.glb"
+        environment-image="studio_small_01_1k.hdr"
+        camera-controls
+        interaction-prompt="none"
+        touch-action="none"
+        shadow-intensity="2"
+        shadow-softness="1"
+        tone-mapping="aces"
+        interpolation-decay="200"
+        camera-orbit="-109deg 75deg 13.16m"
+        camera-target="-0.77m 1.46m -0.45m"
+        min-camera-orbit="auto 5deg 2m"
+        max-camera-orbit="auto 95deg 30m"
+        alt="3D модель VTB Stand"
+    >
+        <!-- HOTSPOTS -->
+        <button class="hotspot hide" slot="hotspot-1"
+            data-position="-0.84 1.38 0.48" data-normal="0 0 1"
+            data-orbit="-69deg 86deg 10.74m" data-target="-0.60m 1.07m 0.25m">
+            <div class="hotspot-dot">1</div>
+            <div class="hotspot-annotation"><strong>Монитор</strong><br>Основной экран стенда.</div>
+        </button>
+        <button class="hotspot hide" slot="hotspot-2"
+            data-position="-2.30 1.19 -0.95" data-normal="0 0 1"
+            data-orbit="-120deg 75deg 8.42m" data-target="-2.45m 0.94m -1.36m">
+            <div class="hotspot-dot">2</div>
+            <div class="hotspot-annotation"><strong>Инфо-стойка</strong><br>Информационная стойка.</div>
+        </button>
+        <button class="hotspot hide" slot="hotspot-3"
+            data-position="-0.06 3.39 1.18" data-normal="0 0 1"
+            data-orbit="-92deg 86deg 11.80m" data-target="0.02m 3.27m 1.45m">
+            <div class="hotspot-dot">3</div>
+            <div class="hotspot-annotation"><strong>Логотип ВТБ</strong><br>Фирменный логотип.</div>
+        </button>
+        <button class="hotspot hide" slot="hotspot-4"
+            data-position="0.38 0.61 2.40" data-normal="0 0 -1"
+            data-orbit="34deg 80deg 7.26m" data-target="0.16m 0.58m 1.27m">
+            <div class="hotspot-dot">4</div>
+            <div class="hotspot-annotation"><strong>Интерактив</strong><br>Интерактивная зона.</div>
+        </button>
+        <button class="hotspot hide" slot="hotspot-5"
+            data-position="2.05 0.52 -0.17" data-normal="-1 0 0"
+            data-orbit="86deg 40deg 12.41m" data-target="2.03m 0.09m 0.03m">
+            <div class="hotspot-dot">5</div>
+            <div class="hotspot-annotation"><strong>Диваны</strong><br>Зона отдыха.</div>
+        </button>
+
+        <!-- DIMENSION HOTSPOTS -->
+        <button slot="hotspot-dim-y-top" class="dim-dot" data-position="3.5 4.5 0" data-normal="1 0 0"></button>
+        <button slot="hotspot-dim-y-bot" class="dim-dot" data-position="3.5 0 0" data-normal="1 0 0"></button>
+        <button slot="hotspot-dim-y-label" class="dim-label" data-position="4.0 2.25 0" data-normal="1 0 0">--</button>
+        <button slot="hotspot-dim-x-left" class="dim-dot" data-position="-3.5 -0.1 0" data-normal="0 -1 0"></button>
+        <button slot="hotspot-dim-x-right" class="dim-dot" data-position="3.5 -0.1 0" data-normal="0 -1 0"></button>
+        <button slot="hotspot-dim-x-label" class="dim-label" data-position="0 -0.3 0" data-normal="0 -1 0">--</button>
+
+        <svg id="dimLines" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="dim-svg">
+            <line class="dim-line"></line>
+            <line class="dim-line"></line>
+        </svg>
+
+        <!-- GIZMO: 3 axis hotspots that follow selected hotspot -->
+        <button slot="hotspot-gizmo-center" class="gizmo-part gizmo-center" data-position="0 0 0" data-normal="0 1 0" style="display:none;"></button>
+        <button slot="hotspot-gizmo-x" class="gizmo-part gizmo-x" data-position="0 0 0" data-normal="0 1 0" style="display:none;">X</button>
+        <button slot="hotspot-gizmo-y" class="gizmo-part gizmo-y" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Y</button>
+        <button slot="hotspot-gizmo-z" class="gizmo-part gizmo-z" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Z</button>
+
+        <!-- SVG lines for gizmo axes -->
+        <svg id="gizmoSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="gizmo-svg" style="display:none;">
+            <line id="gizmo-line-x" stroke="#ff4444" stroke-width="3" stroke-linecap="round"></line>
+            <line id="gizmo-line-y" stroke="#44ff44" stroke-width="3" stroke-linecap="round"></line>
+            <line id="gizmo-line-z" stroke="#4488ff" stroke-width="3" stroke-linecap="round"></line>
+        </svg>
+
+        <!-- EFFECTS: real post-processing bloom -->
+        <effect-composer render-mode="quality">
+            <bloom-effect id="bloom-effect" strength="0.1" threshold="0.8" radius="0.85" smoothing="0.025"></bloom-effect>
+            <color-grade-effect id="color-grade" tonemapping="ACES_FILMIC" brightness="0" contrast="0"></color-grade-effect>
+        </effect-composer>
+    </model-viewer>
+
+    <!-- Right-side hotspot nav (hidden at start) -->
+    <div id="hotspot-nav" style="display:none;">
+        <div class="nav-item" data-index="0">МОНИТОР</div>
+        <div class="nav-item" data-index="1">СТОЙКА</div>
+        <div class="nav-item" data-index="2">ЛОГОТИП</div>
+        <div class="nav-item" data-index="3">ИНТЕРАКТИВ</div>
+        <div class="nav-item" data-index="4">ДИВАНЫ</div>
+    </div>
+
+    <!-- FPS counter -->
+    <div id="fps-counter" style="display:none;">FPS: 0</div>
+
+    <!-- ============================================ -->
+    <!-- SETTINGS POPUP PANEL -->
+    <!-- ============================================ -->
+    <div id="settings-panel" class="settings-panel hidden">
+        <div class="tab-bar">
+            <button class="tab-btn active" data-tab="tab-material">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>
+                МАТЕРИАЛ
+            </button>
+            <button class="tab-btn" data-tab="tab-editor">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2m-9-11h2m18 0h2m-3.3-7.7-1.4 1.4M5.7 18.3l-1.4 1.4m0-15.4 1.4 1.4m12.6 12.6 1.4 1.4"/></svg>
+                РЕДАКТОР
+            </button>
+            <button class="tab-btn" data-tab="tab-zones">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+                ЗОНЫ
+            </button>
+            <button class="tab-btn tab-reset" id="btn-reset-all">СБРОС</button>
+        </div>
+
+        <!-- TAB: MATERIAL -->
+        <div class="tab-content active" id="tab-material">
+            <div class="settings-grid">
+                <div class="setting-col">
+                    <div class="setting-section-title">ВИДЕО</div>
+                    <div class="setting-row"><span class="setting-label">ИСТОЧНИК</span></div>
+                    <select id="video-select">
+                        <option value="video1.mp4">Видео 1</option>
+                        <option value="video2.mp4" selected>Видео 2</option>
+                        <option value="video3.mp4">Видео 3</option>
+                        <option value="video4.mp4">Видео 4</option>
+                    </select>
+                    <div class="setting-row">
+                        <span class="setting-label">ЯРКОСТЬ ВИДЕО</span>
+                        <span class="setting-value" id="video-int-val">4.5</span>
+                    </div>
+                    <input type="range" id="video-intensity" min="0" max="10" step="0.1" value="4.5">
+
+                    <div class="setting-section-title" style="margin-top:16px">НЕОН</div>
+                    <div class="setting-row"><span class="setting-label">ЦВЕТ</span></div>
+                    <input type="color" id="neon-color" value="#0055ff">
+                    <div class="setting-row">
+                        <span class="setting-label">ИНТЕНСИВНОСТЬ</span>
+                        <span class="setting-value" id="neon-val">20</span>
+                    </div>
+                    <input type="range" id="neon-intensity" min="0" max="50" step="0.5" value="20">
+
+                    <div class="setting-row" style="margin-top:12px">
+                        <span class="setting-label">BLOOM</span>
+                        <span class="setting-value" id="bloom-val">0.10</span>
+                    </div>
+                    <input type="range" id="bloom-slider" min="0" max="2" step="0.01" value="0.1">
+                </div>
+                <div class="setting-col">
+                    <div class="setting-section-title">ПОВЕРХНОСТЬ</div>
+                    <div class="setting-row">
+                        <span class="setting-label">МЕТАЛЛИЧНОСТЬ</span>
+                        <span class="setting-value" id="mat-metalness-val">0.48</span>
+                    </div>
+                    <input type="range" id="mat-metalness" min="0" max="1" step="0.01" value="0.48">
+                    <div class="setting-row">
+                        <span class="setting-label">ШЕРОХОВАТОСТЬ</span>
+                        <span class="setting-value" id="mat-roughness-val">0.48</span>
+                    </div>
+                    <input type="range" id="mat-roughness" min="0" max="1" step="0.01" value="0.48">
+
+                    <div class="setting-section-title" style="margin-top:16px">ОСВЕЩЕНИЕ</div>
+                    <div class="setting-row"><span class="setting-label">HDRI</span></div>
+                    <select id="hdri-select">
+                        <option value="studio_small_01_1k.hdr">Студия 01</option>
+                        <option value="studio_small_02_1k.hdr">Студия 02</option>
+                        <option value="studio_small_04_1k.hdr">Студия 04</option>
+                        <option value="photo_studio_broadway_hall_1k.hdr">Бродвей Холл</option>
+                        <option value="">Нейтральное</option>
+                        <option value="legacy">Legacy</option>
+                    </select>
+                    <div class="setting-row">
+                        <span class="setting-label">ТЕНИ</span>
+                        <span class="setting-value" id="shadow-val">2</span>
+                    </div>
+                    <input type="range" id="shadow-range" min="0" max="5" step="0.1" value="2">
+                    <div class="setting-row">
+                        <span class="setting-label">ЭКСПОЗИЦИЯ</span>
+                        <span class="setting-value" id="exposure-val">1</span>
+                    </div>
+                    <input type="range" id="exposure-range" min="0" max="3" step="0.1" value="1">
+
+                    <div class="setting-row" style="margin-top:16px;justify-content:space-between;align-items:center;">
+                        <span class="setting-label">FPS</span>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-fps"><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: EDITOR (hotspot edit mode with number inputs) -->
+        <div class="tab-content" id="tab-editor">
+            <div id="edit-selected" class="edit-label">Кликни на точку на модели чтобы выбрать</div>
+            <div class="settings-grid">
+                <div class="setting-col">
+                    <div class="setting-row">
+                        <span class="setting-label">X</span>
+                        <input type="number" id="edit-x" class="num-input" step="0.01" value="0">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Y</span>
+                        <input type="number" id="edit-y" class="num-input" step="0.01" value="0">
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Z</span>
+                        <input type="number" id="edit-z" class="num-input" step="0.01" value="0">
+                    </div>
+                </div>
+                <div class="setting-col" style="display:flex;flex-direction:column;gap:8px;justify-content:center;">
+                    <button id="edit-save-camera" class="panel-btn btn-orange">СОХРАНИТЬ КАМЕРУ</button>
+                    <button id="edit-export" class="panel-btn btn-green">ЭКСПОРТ ВСЕХ</button>
+                </div>
+            </div>
+            <textarea id="edit-output" rows="4" readonly placeholder="Данные экспорта появятся здесь..."></textarea>
+
+            <!-- Model & Environment -->
+            <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                <div class="setting-section-title">МОДЕЛЬ И ОКРУЖЕНИЕ</div>
+                <div class="settings-grid">
+                    <div class="setting-col">
+                        <div class="setting-row"><span class="setting-label">3D МОДЕЛЬ (.glb)</span></div>
+                        <input type="file" id="model-file-input" accept=".glb,.gltf" style="display:none;">
+                        <button id="btn-load-model" class="panel-btn" style="margin-top:4px;">ЗАГРУЗИТЬ МОДЕЛЬ</button>
+                        <div class="setting-row" style="margin-top:8px;"><span class="setting-label">ИЛИ URL МОДЕЛИ</span></div>
+                        <input type="text" id="model-url-input" class="num-input" style="width:100%;font-size:11px;" placeholder="https://...model.glb">
+                        <button id="btn-load-model-url" class="panel-btn btn-orange" style="margin-top:4px;">ЗАГРУЗИТЬ ПО URL</button>
+                    </div>
+                    <div class="setting-col">
+                        <div class="setting-row"><span class="setting-label">ОКРУЖЕНИЕ (.hdr)</span></div>
+                        <input type="file" id="env-file-input" accept=".hdr" style="display:none;">
+                        <button id="btn-load-env" class="panel-btn" style="margin-top:4px;">ЗАГРУЗИТЬ HDR</button>
+                        <div class="setting-row" style="margin-top:8px;"><span class="setting-label">ИЛИ URL HDR</span></div>
+                        <input type="text" id="env-url-input" class="num-input" style="width:100%;font-size:11px;" placeholder="https://...env.hdr">
+                        <button id="btn-load-env-url" class="panel-btn btn-orange" style="margin-top:4px;">ЗАГРУЗИТЬ ПО URL</button>
+                    </div>
+                </div>
+                <div id="model-load-status" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.4);"></div>
+            </div>
+
+            <!-- Start camera editor -->
+            <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                <div class="setting-section-title">СТАРТОВАЯ КАМЕРА</div>
+                <div class="setting-row">
+                    <span class="setting-label">ORBIT</span>
+                    <span class="setting-value" id="start-orbit-val" style="font-size:10px;">-109deg 75deg 13.16m</span>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">TARGET</span>
+                    <span class="setting-value" id="start-target-val" style="font-size:10px;">-0.77m 1.46m -0.45m</span>
+                </div>
+                <div class="setting-row" style="margin-top:8px;">
+                    <span class="setting-label" style="font-size:10px;color:rgba(255,255,255,0.35);">Наведи камеру → нажми кнопку</span>
+                </div>
+                <button id="edit-save-start-camera" class="panel-btn" style="margin-top:8px;border-color:rgba(77,201,246,0.4);color:#4dc9f6;">СОХРАНИТЬ КАК СТАРТОВУЮ</button>
+                <div class="setting-row" style="margin-top:6px;">
+                    <span class="setting-label" id="start-camera-live" style="font-size:10px;color:rgba(255,255,255,0.25);"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: ZONES -->
+        <div class="tab-content" id="tab-zones">
+            <div class="settings-grid">
+                <div class="setting-col">
+                    <div class="setting-section-title">ОТОБРАЖЕНИЕ</div>
+                    <div class="setting-row" style="justify-content:space-between;align-items:center;">
+                        <span class="setting-label">ТОЧКИ ИНТЕРЕСА</span>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-hotspots"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row" style="justify-content:space-between;align-items:center;">
+                        <span class="setting-label">РАЗМЕРЫ</span>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-dimensions"><span class="toggle-slider"></span></label>
+                    </div>
+                    <div class="setting-row" style="justify-content:space-between;align-items:center;">
+                        <span class="setting-label">ВРАЩЕНИЕ</span>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-rotation"><span class="toggle-slider"></span></label>
+                    </div>
+                </div>
+                <div class="setting-col">
+                    <div class="setting-section-title">ДЕЙСТВИЯ</div>
+                    <button id="resetCameraBtn" class="panel-btn" style="margin-top:8px">СБРОС КАМЕРЫ</button>
+                    <button id="screenshotBtn" class="panel-btn btn-green" style="margin-top:8px">СКРИНШОТ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM TOOLBAR: 3 buttons -->
+    <div id="bottom-bar">
+        <button class="bar-btn" id="bar-home" title="Домой / Редактор">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </button>
+        <button class="bar-btn" id="bar-hotspots" title="Зоны">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        </button>
+        <button class="bar-btn" id="bar-settings" title="Настройки">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </button>
+    </div>
+
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.172.0/build/three.module.min.js"
+  }
+}
+</script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>
