@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
-        // Pre-cache video textures so switching is instant (no re-download)
+        // Lazy-cache video textures: created once on first use, reused on switch
         var videoTextureCache = {}; // videoFile -> texture
         var activeTextureVideo = null; // the <video> inside the active texture
 
@@ -327,24 +327,33 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Pause the previously active texture's internal video
                 if (activeTextureVideo) {
-                    try { activeTextureVideo.pause(); } catch(e2) {}
+                    activeTextureVideo.pause();
+                    activeTextureVideo = null;
                 }
 
-                // Reuse cached texture or create once
-                if (!videoTextureCache[videoFile]) {
+                // Reuse cached texture or create once (lazy cache)
+                var isNew = !videoTextureCache[videoFile];
+                if (isNew) {
                     videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
                 }
                 currentVideoTexture = videoTextureCache[videoFile];
 
-                // Play the internal <video> element of this texture
-                try {
-                    var el = currentVideoTexture.source.element;
-                    if (el) {
-                        el.currentTime = 0;
-                        el.play().catch(function() {});
-                        activeTextureVideo = el;
-                    }
-                } catch(e2) {}
+                // If reusing a cached texture, restart its internal video
+                if (!isNew) {
+                    try {
+                        var el = currentVideoTexture.source.element;
+                        if (el) {
+                            el.currentTime = 0;
+                            el.play().catch(function() {});
+                            activeTextureVideo = el;
+                        }
+                    } catch(e2) {}
+                } else {
+                    // New texture — createVideoTexture already called play()
+                    try {
+                        activeTextureVideo = currentVideoTexture.source.element;
+                    } catch(e2) {}
+                }
 
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
@@ -353,22 +362,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
                 console.log('Video applied: ' + videoFile);
             } catch(e) { console.warn('Failed to apply video:', e); }
-        }
-
-        // Pre-warm all video textures in background after model loads
-        function preCacheVideoTextures() {
-            var files = ['video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4'];
-            files.forEach(function(f) {
-                if (!videoTextureCache[f]) {
-                    videoTextureCache[f] = viewer.createVideoTexture(f);
-                    // Pause the internally created video (it auto-plays)
-                    try {
-                        var el = videoTextureCache[f].source.element;
-                        if (el) el.pause();
-                    } catch(e) {}
-                }
-            });
-            console.log('All video textures pre-cached');
         }
 
         // ============================================================
@@ -747,11 +740,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Apply default video and pre-cache all video textures
+            // Apply default video (others will be cached on first switch)
             if (screenMaterial) {
                 applyVideoTexture(document.getElementById('video-select').value);
-                // Pre-cache remaining videos in background for instant switching
-                setTimeout(preCacheVideoTextures, 1000);
             }
 
             // Fix z-fighting: continuously enforce minimum camera near clip
