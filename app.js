@@ -318,8 +318,9 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
-        // Use pre-defined <video> elements + model-viewer's createVideoTexture
+        // Pre-cache video textures so switching is instant (no re-download)
         var activeVideoEl = null;
+        var videoTextureCache = {}; // videoFile -> texture
 
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
@@ -329,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     try { activeVideoEl.pause(); } catch(e2) {}
                 }
 
-                // Use the pre-defined video element as source
+                // Play the pre-loaded <video> element
                 var videoId = videoFile.replace('.mp4', '');
                 var videoEl = document.getElementById(videoId);
                 if (videoEl) {
@@ -338,8 +339,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     activeVideoEl = videoEl;
                 }
 
-                // createVideoTexture creates its own <video>, set texture on material
-                currentVideoTexture = viewer.createVideoTexture(videoFile);
+                // Reuse cached texture or create once
+                if (!videoTextureCache[videoFile]) {
+                    videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
+                }
+                currentVideoTexture = videoTextureCache[videoFile];
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
@@ -347,6 +351,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
                 console.log('Video applied: ' + videoFile);
             } catch(e) { console.warn('Failed to apply video:', e); }
+        }
+
+        // Pre-warm all video textures in background after model loads
+        function preCacheVideoTextures() {
+            var files = ['video1.mp4', 'video2.mp4', 'video3.mp4', 'video4.mp4'];
+            files.forEach(function(f) {
+                if (!videoTextureCache[f]) {
+                    videoTextureCache[f] = viewer.createVideoTexture(f);
+                    // Pause the internally created video (it auto-plays)
+                    try {
+                        var tex = videoTextureCache[f];
+                        if (tex && tex.source && tex.source.element) {
+                            tex.source.element.pause();
+                        }
+                    } catch(e) {}
+                }
+            });
+            console.log('All video textures pre-cached');
         }
 
         // ============================================================
@@ -725,8 +747,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            // Apply default video
-            if (screenMaterial) applyVideoTexture(document.getElementById('video-select').value);
+            // Apply default video and pre-cache all video textures
+            if (screenMaterial) {
+                applyVideoTexture(document.getElementById('video-select').value);
+                // Pre-cache remaining videos in background for instant switching
+                setTimeout(preCacheVideoTextures, 1000);
+            }
 
             // Fix z-fighting: continuously enforce minimum camera near clip
             // model-viewer recalculates near = far/1000 each frame via SmoothControls.updateNearFar
@@ -768,7 +794,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Debug helper
         window.applyVideoToMaterial = function(idx, file) {
             var mat = allMaterials[idx]; if (!mat) return;
-            var tex = viewer.createVideoTexture(file);
+            if (!videoTextureCache[file]) {
+                videoTextureCache[file] = viewer.createVideoTexture(file);
+            }
+            var tex = videoTextureCache[file];
             mat.pbrMetallicRoughness.baseColorTexture.setTexture(tex);
             mat.pbrMetallicRoughness.setMetallicFactor(0);
             mat.pbrMetallicRoughness.setRoughnessFactor(1);
