@@ -100,17 +100,17 @@ document.addEventListener('DOMContentLoaded', function() {
             viewer.cameraOrbit = defaultOrbit;
             viewer.cameraTarget = defaultTarget;
             viewer.environmentImage = 'studio_small_01_1k.hdr';
-            viewer.shadowIntensity = 2;
-            viewer.setAttribute('exposure', 1);
-            viewer.exposure = 1;
+            viewer.shadowIntensity = 2.5;
+            viewer.setAttribute('exposure', 1.1);
+            viewer.exposure = 1.1;
             viewer.removeAttribute('auto-rotate');
-            setSlider('video-intensity', 7, 'video-int-val');
-            setSlider('neon-intensity', 20, 'neon-val');
+            setSlider('video-intensity', 2.7, 'video-int-val');
+            setSlider('neon-intensity', 2, 'neon-val');
             setSlider('bloom-slider', 0.1, 'bloom-val', true);
             setSlider('mat-metalness', 0.48, 'mat-metalness-val', true);
             setSlider('mat-roughness', 0.48, 'mat-roughness-val', true);
-            setSlider('shadow-range', 2, 'shadow-val');
-            setSlider('exposure-range', 1, 'exposure-val');
+            setSlider('shadow-range', 2.5, 'shadow-val');
+            setSlider('exposure-range', 1.1, 'exposure-val');
             document.getElementById('neon-color').value = '#0055ff';
             document.getElementById('hdri-select').selectedIndex = 0;
             document.getElementById('video-select').selectedIndex = 1;
@@ -119,6 +119,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('mat-metalness').dispatchEvent(new Event('input'));
             document.getElementById('mat-roughness').dispatchEvent(new Event('input'));
             document.getElementById('bloom-slider').dispatchEvent(new Event('input'));
+            // Reset background
+            document.getElementById('toggle-light-bg').checked = false;
+            document.getElementById('toggle-light-bg').dispatchEvent(new Event('change'));
+            document.getElementById('toggle-skybox').checked = false;
+            document.getElementById('toggle-skybox').dispatchEvent(new Event('change'));
+            setSlider('skybox-blur', 0, 'skybox-blur-val');
             resetIdleTimer();
         };
 
@@ -278,7 +284,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // === HDRI / Shadow / Exposure ===
-        document.getElementById('hdri-select').onchange = function() { viewer.environmentImage = this.value; };
+        document.getElementById('hdri-select').onchange = function() {
+            viewer.environmentImage = this.value;
+            // Update skybox if visible
+            if (document.getElementById('toggle-skybox').checked) {
+                viewer.skyboxImage = this.value || viewer.environmentImage;
+            }
+        };
         document.getElementById('shadow-range').oninput = function() {
             viewer.shadowIntensity = parseFloat(this.value);
             document.getElementById('shadow-val').textContent = this.value;
@@ -303,6 +315,50 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('toggle-fps').onchange = function() {
             fpsOn = this.checked;
             fpsEl.style.display = fpsOn ? 'block' : 'none';
+        };
+
+        // === Background controls ===
+        var darkBg = '#0d1117';
+        var lightBg = '#e8e8e8';
+        document.getElementById('toggle-light-bg').onchange = function() {
+            var isLight = this.checked;
+            var color = isLight ? lightBg : darkBg;
+            viewer.style.background = color;
+            viewer.style.setProperty('--poster-color', color);
+        };
+        document.getElementById('toggle-skybox').onchange = function() {
+            if (this.checked) {
+                // Show HDRI as skybox
+                var hdriVal = document.getElementById('hdri-select').value;
+                viewer.skyboxImage = hdriVal || viewer.environmentImage;
+                var blur = parseFloat(document.getElementById('skybox-blur').value) || 0;
+                viewer.skyboxHeight = '0m';
+                viewer.setAttribute('skybox-height', '0m');
+            } else {
+                viewer.skyboxImage = '';
+                viewer.removeAttribute('skybox-image');
+            }
+        };
+        document.getElementById('skybox-blur').oninput = function() {
+            var val = parseFloat(this.value);
+            document.getElementById('skybox-blur-val').textContent = val.toFixed(1);
+            // Access Three.js scene for backgroundBlurriness
+            try {
+                var symbols = Object.getOwnPropertySymbols(viewer);
+                var sceneSymbol = symbols.find(function(s) { return s.description === 'scene'; });
+                if (sceneSymbol) {
+                    var mvScene = viewer[sceneSymbol];
+                    // Try to find the Three.js Scene object
+                    var innerSymbols = Object.getOwnPropertySymbols(mvScene);
+                    for (var i = 0; i < innerSymbols.length; i++) {
+                        var obj = mvScene[innerSymbols[i]];
+                        if (obj && obj.isScene && obj.backgroundBlurriness !== undefined) {
+                            obj.backgroundBlurriness = val;
+                            break;
+                        }
+                    }
+                }
+            } catch(e) { console.warn('Skybox blur not supported:', e); }
         };
         function updateFps() {
             if (fpsOn) {
@@ -727,7 +783,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var b = parseInt(defHex.substr(5,2),16)/255;
                 neonMaterials.forEach(function(mat) {
                     try { mat.setEmissiveFactor([r, g, b]); } catch(e) {}
-                    try { mat.setEmissiveStrength(20); } catch(e) {}
+                    try { mat.setEmissiveStrength(2); } catch(e) {}
                 });
             }
 
