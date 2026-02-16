@@ -131,8 +131,8 @@
                     <div class="setting-row"><span class="setting-label">ИСТОЧНИК</span></div>
                     <select id="video-select">
                         <option value="video1.mp4">Видео 1</option>
-                        <option value="video2.mp4">Видео 2 (только локально)</option>
-                        <option value="video3.mp4" selected>Видео 3</option>
+                        <option value="video2.mp4" selected>Видео 2 (только локально)</option>
+                        <option value="video3.mp4">Видео 3</option>
                         <option value="video4.mp4">Видео 4</option>
                     </select>
                     <div class="setting-row">
@@ -320,5 +320,10 @@
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
 <script type="module" src="app.js"></script>
+<!-- Pre-loaded video elements for instant switching -->
+<video id="video1" src="./video1.mp4" loop muted crossorigin="anonymous" playsinline preload="auto" style="display:none"></video>
+<video id="video2" src="./video2.mp4" loop muted crossorigin="anonymous" playsinline preload="auto" style="display:none"></video>
+<video id="video3" src="./video3.mp4" loop muted crossorigin="anonymous" playsinline preload="auto" style="display:none"></video>
+<video id="video4" src="./video4.mp4" loop muted crossorigin="anonymous" playsinline preload="auto" style="display:none"></video>
 </body>
 </html>

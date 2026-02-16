@@ -318,15 +318,27 @@ document.addEventListener('DOMContentLoaded', function() {
         requestAnimationFrame(updateFps);
 
         // === Apply video texture ===
+        // Use pre-defined <video> elements + model-viewer's createVideoTexture
+        var activeVideoEl = null;
+
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Pause and remove all old video elements to avoid accumulation
-                var oldVideos = document.querySelectorAll('model-viewer video');
-                oldVideos.forEach(function(v) {
-                    try { v.pause(); v.src = ''; v.remove(); } catch(e2) {}
-                });
+                // Pause current video if any
+                if (activeVideoEl) {
+                    try { activeVideoEl.pause(); } catch(e2) {}
+                }
 
+                // Use the pre-defined video element as source
+                var videoId = videoFile.replace('.mp4', '');
+                var videoEl = document.getElementById(videoId);
+                if (videoEl) {
+                    videoEl.currentTime = 0;
+                    videoEl.play().catch(function() {});
+                    activeVideoEl = videoEl;
+                }
+
+                // createVideoTexture creates its own <video>, set texture on material
                 currentVideoTexture = viewer.createVideoTexture(videoFile);
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
