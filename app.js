@@ -319,24 +319,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // === Apply video texture ===
         // Pre-cache video textures so switching is instant (no re-download)
-        var activeVideoEl = null;
         var videoTextureCache = {}; // videoFile -> texture
+        var activeTextureVideo = null; // the <video> inside the active texture
 
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Pause current video if any
-                if (activeVideoEl) {
-                    try { activeVideoEl.pause(); } catch(e2) {}
-                }
-
-                // Play the pre-loaded <video> element
-                var videoId = videoFile.replace('.mp4', '');
-                var videoEl = document.getElementById(videoId);
-                if (videoEl) {
-                    videoEl.currentTime = 0;
-                    videoEl.play().catch(function() {});
-                    activeVideoEl = videoEl;
+                // Pause the previously active texture's internal video
+                if (activeTextureVideo) {
+                    try { activeTextureVideo.pause(); } catch(e2) {}
                 }
 
                 // Reuse cached texture or create once
@@ -344,6 +335,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
                 }
                 currentVideoTexture = videoTextureCache[videoFile];
+
+                // Play the internal <video> element of this texture
+                try {
+                    var el = currentVideoTexture.source.element;
+                    if (el) {
+                        el.currentTime = 0;
+                        el.play().catch(function() {});
+                        activeTextureVideo = el;
+                    }
+                } catch(e2) {}
+
                 screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
                 screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                 screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
@@ -361,10 +363,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     videoTextureCache[f] = viewer.createVideoTexture(f);
                     // Pause the internally created video (it auto-plays)
                     try {
-                        var tex = videoTextureCache[f];
-                        if (tex && tex.source && tex.source.element) {
-                            tex.source.element.pause();
-                        }
+                        var el = videoTextureCache[f].source.element;
+                        if (el) el.pause();
                     } catch(e) {}
                 }
             });
