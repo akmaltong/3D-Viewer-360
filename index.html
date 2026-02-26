@@ -3,11 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>VTB Stand - 3D Viewer</title>
+    <title>VTB Stand — 3D Viewer</title>
+    <meta name="description" content="Интерактивный 3D просмотр выставочного стенда VTB. Вращайте, масштабируйте, исследуйте.">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<!-- ============================================ -->
+<!-- LOADING SCREEN -->
+<!-- ============================================ -->
+<div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div class="loader-title">VTB Stand</div>
+    <div class="loader-bar-track">
+        <div class="loader-bar-fill" id="loader-bar"></div>
+    </div>
+    <div class="loader-percent" id="loader-percent">0%</div>
+</div>
 
 <div id="app">
 
@@ -73,27 +85,26 @@
             <line class="dim-line"></line>
         </svg>
 
-        <!-- GIZMO: 3 axis hotspots that follow selected hotspot -->
+        <!-- GIZMO -->
         <button slot="hotspot-gizmo-center" class="gizmo-part gizmo-center" data-position="0 0 0" data-normal="0 1 0" style="display:none;"></button>
         <button slot="hotspot-gizmo-x" class="gizmo-part gizmo-x" data-position="0 0 0" data-normal="0 1 0" style="display:none;">X</button>
         <button slot="hotspot-gizmo-y" class="gizmo-part gizmo-y" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Y</button>
         <button slot="hotspot-gizmo-z" class="gizmo-part gizmo-z" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Z</button>
 
-        <!-- SVG lines for gizmo axes -->
         <svg id="gizmoSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="gizmo-svg" style="display:none;">
             <line id="gizmo-line-x" stroke="#ff4444" stroke-width="3" stroke-linecap="round"></line>
             <line id="gizmo-line-y" stroke="#44ff44" stroke-width="3" stroke-linecap="round"></line>
             <line id="gizmo-line-z" stroke="#4488ff" stroke-width="3" stroke-linecap="round"></line>
         </svg>
 
-        <!-- EFFECTS: real post-processing bloom -->
+        <!-- EFFECTS -->
         <effect-composer render-mode="quality">
             <bloom-effect id="bloom-effect" strength="0.1" threshold="0.5" radius="0.85" smoothing="0.025"></bloom-effect>
             <color-grade-effect id="color-grade" tonemapping="NEUTRAL" brightness="0" contrast="0"></color-grade-effect>
         </effect-composer>
     </model-viewer>
 
-    <!-- Right-side hotspot nav (hidden at start) -->
+    <!-- Right-side hotspot nav -->
     <div id="hotspot-nav" style="display:none;">
         <div class="nav-item" data-index="0">МОНИТОР</div>
         <div class="nav-item" data-index="1">СТОЙКА</div>
@@ -143,7 +154,7 @@
                     </div>
                     <input type="range" id="video-intensity" min="0" max="15" step="0.1" value="2.7">
 
-                    <div class="setting-section-title" style="margin-top:16px">НЕОН</div>
+                    <div class="setting-section-title" style="margin-top:18px">НЕОН</div>
                     <div class="setting-row"><span class="setting-label">ЦВЕТ</span></div>
                     <input type="color" id="neon-color" value="#0055ff">
                     <div class="setting-row">
@@ -152,7 +163,7 @@
                     </div>
                     <input type="range" id="neon-intensity" min="0" max="50" step="0.5" value="2">
 
-                    <div class="setting-row" style="margin-top:12px">
+                    <div class="setting-row" style="margin-top:14px">
                         <span class="setting-label">BLOOM</span>
                         <span class="setting-value" id="bloom-val">0.10</span>
                     </div>
@@ -171,7 +182,7 @@
                     </div>
                     <input type="range" id="mat-roughness" min="0" max="1" step="0.01" value="0.48">
 
-                    <div class="setting-section-title" style="margin-top:16px">ОСВЕЩЕНИЕ</div>
+                    <div class="setting-section-title" style="margin-top:18px">ОСВЕЩЕНИЕ</div>
                     <div class="setting-row"><span class="setting-label">HDRI</span></div>
                     <select id="hdri-select">
                         <option value="studio_small_01_1k.hdr">Студия 01</option>
@@ -192,7 +203,7 @@
                     </div>
                     <input type="range" id="exposure-range" min="0" max="3" step="0.1" value="1.1">
 
-                    <div class="setting-section-title" style="margin-top:16px">ФОН</div>
+                    <div class="setting-section-title" style="margin-top:18px">ФОН</div>
                     <div class="setting-row" style="justify-content:space-between;align-items:center;">
                         <span class="setting-label">СВЕТЛЫЙ ФОН</span>
                         <label class="toggle-switch"><input type="checkbox" id="toggle-light-bg"><span class="toggle-slider"></span></label>
@@ -215,7 +226,7 @@
             </div>
         </div>
 
-        <!-- TAB: EDITOR (hotspot edit mode with number inputs) -->
+        <!-- TAB: EDITOR -->
         <div class="tab-content" id="tab-editor">
             <div id="edit-selected" class="edit-label">Кликни на точку на модели чтобы выбрать</div>
             <div class="settings-grid">
@@ -241,7 +252,7 @@
             <textarea id="edit-output" rows="4" readonly placeholder="Данные экспорта появятся здесь..."></textarea>
 
             <!-- Model & Environment -->
-            <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+            <div style="margin-top:18px;border-top:1px solid rgba(255,255,255,0.04);padding-top:14px;">
                 <div class="setting-section-title">МОДЕЛЬ И ОКРУЖЕНИЕ</div>
                 <div class="settings-grid">
                     <div class="setting-col">
@@ -265,7 +276,7 @@
             </div>
 
             <!-- Start camera editor -->
-            <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+            <div style="margin-top:18px;border-top:1px solid rgba(255,255,255,0.04);padding-top:14px;">
                 <div class="setting-section-title">СТАРТОВАЯ КАМЕРА</div>
                 <div class="setting-row">
                     <span class="setting-label">ORBIT</span>
@@ -276,11 +287,11 @@
                     <span class="setting-value" id="start-target-val" style="font-size:10px;">-0.77m 1.46m -0.45m</span>
                 </div>
                 <div class="setting-row" style="margin-top:8px;">
-                    <span class="setting-label" style="font-size:10px;color:rgba(255,255,255,0.35);">Наведи камеру → нажми кнопку</span>
+                    <span class="setting-label" style="font-size:10px;color:rgba(255,255,255,0.25);">Наведи камеру → нажми кнопку</span>
                 </div>
-                <button id="edit-save-start-camera" class="panel-btn" style="margin-top:8px;border-color:rgba(77,201,246,0.4);color:#4dc9f6;">СОХРАНИТЬ КАК СТАРТОВУЮ</button>
+                <button id="edit-save-start-camera" class="panel-btn" style="margin-top:8px;border-color:rgba(77,201,246,0.3);color:#4dc9f6;">СОХРАНИТЬ КАК СТАРТОВУЮ</button>
                 <div class="setting-row" style="margin-top:6px;">
-                    <span class="setting-label" id="start-camera-live" style="font-size:10px;color:rgba(255,255,255,0.25);"></span>
+                    <span class="setting-label" id="start-camera-live" style="font-size:10px;color:rgba(255,255,255,0.2);"></span>
                 </div>
             </div>
         </div>
@@ -312,7 +323,7 @@
         </div>
     </div>
 
-    <!-- BOTTOM TOOLBAR: 3 buttons -->
+    <!-- BOTTOM TOOLBAR -->
     <div id="bottom-bar">
         <button class="bar-btn" id="bar-home" title="Домой / Редактор">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -336,8 +347,51 @@
 </script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
+
+<!-- Loading screen progress & dismiss -->
+<script>
+(function() {
+    var viewer = document.querySelector('#viewer');
+    var bar    = document.getElementById('loader-bar');
+    var pct    = document.getElementById('loader-percent');
+    var screen = document.getElementById('loading-screen');
+
+    if (viewer) {
+        // Track loading progress
+        viewer.addEventListener('progress', function(e) {
+            var p = Math.round(e.detail.totalProgress * 100);
+            if (bar) bar.style.width = p + '%';
+            if (pct) pct.textContent = p + '%';
+        });
+
+        // Dismiss loading screen when model is ready
+        viewer.addEventListener('load', function() {
+            if (bar) bar.style.width = '100%';
+            if (pct) pct.textContent = '100%';
+            setTimeout(function() {
+                if (screen) screen.classList.add('fade-out');
+                setTimeout(function() {
+                    if (screen && screen.parentNode) screen.remove();
+                }, 900);
+            }, 400);
+        });
+
+        // Fallback: dismiss after 15 seconds max
+        setTimeout(function() {
+            if (screen && !screen.classList.contains('fade-out')) {
+                screen.classList.add('fade-out');
+                setTimeout(function() {
+                    if (screen && screen.parentNode) screen.remove();
+                }, 900);
+            }
+        }, 15000);
+    }
+})();
+</script>
+
 <script type="module" src="app.js"></script>
-<!-- Pre-loaded video elements (preload=none, textures are cached by app.js) -->
+
+<!-- Pre-loaded video elements -->
 <video id="video1" src="./video1.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video2" src="./video2.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video3" src="./video3.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
