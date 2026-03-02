@@ -21,11 +21,21 @@
     <div class="loader-percent" id="loader-percent">0%</div>
 </div>
 
+<div id="loading-screen">
+    <div class="loader-ring"></div>
+    <div class="loader-title">VTB STAND</div>
+    <div class="loader-bar-track">
+        <div class="loader-bar-fill" id="loader-bar"></div>
+    </div>
+    <div class="loader-percent" id="loader-percent">0%</div>
+</div>
+
 <div id="app">
 
     <model-viewer id="viewer"
         src="VTB_StandPack.glb"
-        environment-image="studio_small_01_1k.hdr"
+        environment-image="photo_studio_broadway_hall_1k.hdr"
+        skybox-image="photo_studio_broadway_hall_1k.hdr"
         camera-controls
         interaction-prompt="none"
         touch-action="none"
@@ -34,10 +44,10 @@
         tone-mapping="aces"
         exposure="1.1"
         interpolation-decay="200"
-        camera-orbit="-109deg 75deg 13.16m"
-        camera-target="-0.77m 1.46m -0.45m"
+        camera-orbit="-101.7deg 93.0deg 15.00m"
+        camera-target="0.16m 1.88m 0.02m"
         min-camera-orbit="auto 5deg 2m"
-        max-camera-orbit="auto 95deg 30m"
+        max-camera-orbit="auto 93deg 22m"
         alt="3D модель VTB Stand"
     >
         <!-- HOTSPOTS -->
@@ -45,7 +55,7 @@
             data-position="-0.84 1.38 0.48" data-normal="0 0 1"
             data-orbit="-69deg 86deg 10.74m" data-target="-0.60m 1.07m 0.25m">
             <div class="hotspot-dot">1</div>
-            <div class="hotspot-annotation"><strong>Монитор</strong><br>Основной экран стенда.</div>
+            <div class="hotspot-annotation"><strong>Экран</strong><br>Основной экран стенда.</div>
         </button>
         <button class="hotspot hide" slot="hotspot-2"
             data-position="-2.30 1.19 -0.95" data-normal="0 0 1"
@@ -85,7 +95,20 @@
             <line class="dim-line"></line>
         </svg>
 
-        <!-- GIZMO -->
+        <!-- CAMERA TARGET DOT (red) + gizmo -->
+        <button slot="hotspot-cam-target" class="cam-target-dot" data-position="0.795 0.634 0.279" data-normal="0 1 0" style="display:none;"></button>
+        <button slot="hotspot-cam-target-x" class="gizmo-part gizmo-x cam-target-gizmo" data-position="0 0 0" data-normal="0 1 0" style="display:none;">X</button>
+        <button slot="hotspot-cam-target-y" class="gizmo-part gizmo-y cam-target-gizmo" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Y</button>
+        <button slot="hotspot-cam-target-z" class="gizmo-part gizmo-z cam-target-gizmo" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Z</button>
+
+        <!-- SVG lines for camera target gizmo axes -->
+        <svg id="camTargetGizmoSvg" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" class="gizmo-svg" style="display:none;">
+            <line id="cam-target-line-x" stroke="#ff4444" stroke-width="3" stroke-linecap="round"></line>
+            <line id="cam-target-line-y" stroke="#44ff44" stroke-width="3" stroke-linecap="round"></line>
+            <line id="cam-target-line-z" stroke="#4488ff" stroke-width="3" stroke-linecap="round"></line>
+        </svg>
+
+        <!-- GIZMO: 3 axis hotspots that follow selected hotspot -->
         <button slot="hotspot-gizmo-center" class="gizmo-part gizmo-center" data-position="0 0 0" data-normal="0 1 0" style="display:none;"></button>
         <button slot="hotspot-gizmo-x" class="gizmo-part gizmo-x" data-position="0 0 0" data-normal="0 1 0" style="display:none;">X</button>
         <button slot="hotspot-gizmo-y" class="gizmo-part gizmo-y" data-position="0 0 0" data-normal="0 1 0" style="display:none;">Y</button>
@@ -106,7 +129,7 @@
 
     <!-- Right-side hotspot nav -->
     <div id="hotspot-nav" style="display:none;">
-        <div class="nav-item" data-index="0">МОНИТОР</div>
+        <div class="nav-item" data-index="0">ЭКРАН</div>
         <div class="nav-item" data-index="1">СТОЙКА</div>
         <div class="nav-item" data-index="2">ЛОГОТИП</div>
         <div class="nav-item" data-index="3">ИНТЕРАКТИВ</div>
@@ -150,37 +173,37 @@
                     </select>
                     <div class="setting-row">
                         <span class="setting-label">ЯРКОСТЬ ВИДЕО</span>
-                        <span class="setting-value" id="video-int-val">2.7</span>
+                        <span class="setting-value" id="video-int-val">4.3</span>
                     </div>
-                    <input type="range" id="video-intensity" min="0" max="15" step="0.1" value="2.7">
+                    <input type="range" id="video-intensity" min="0" max="15" step="0.1" value="4.3">
 
                     <div class="setting-section-title" style="margin-top:18px">НЕОН</div>
                     <div class="setting-row"><span class="setting-label">ЦВЕТ</span></div>
                     <input type="color" id="neon-color" value="#0055ff">
                     <div class="setting-row">
                         <span class="setting-label">ИНТЕНСИВНОСТЬ</span>
-                        <span class="setting-value" id="neon-val">2</span>
+                        <span class="setting-value" id="neon-val">20.5</span>
                     </div>
-                    <input type="range" id="neon-intensity" min="0" max="50" step="0.5" value="2">
+                    <input type="range" id="neon-intensity" min="0" max="50" step="0.5" value="20.5">
 
                     <div class="setting-row" style="margin-top:14px">
                         <span class="setting-label">BLOOM</span>
-                        <span class="setting-value" id="bloom-val">0.10</span>
+                        <span class="setting-value" id="bloom-val">0.09</span>
                     </div>
-                    <input type="range" id="bloom-slider" min="0" max="2" step="0.01" value="0.1">
+                    <input type="range" id="bloom-slider" min="0" max="2" step="0.01" value="0.09">
                 </div>
                 <div class="setting-col">
                     <div class="setting-section-title">ПОВЕРХНОСТЬ</div>
                     <div class="setting-row">
                         <span class="setting-label">МЕТАЛЛИЧНОСТЬ</span>
-                        <span class="setting-value" id="mat-metalness-val">0.48</span>
+                        <span class="setting-value" id="mat-metalness-val">0.00</span>
                     </div>
-                    <input type="range" id="mat-metalness" min="0" max="1" step="0.01" value="0.48">
+                    <input type="range" id="mat-metalness" min="0" max="1" step="0.01" value="0">
                     <div class="setting-row">
                         <span class="setting-label">ШЕРОХОВАТОСТЬ</span>
-                        <span class="setting-value" id="mat-roughness-val">0.48</span>
+                        <span class="setting-value" id="mat-roughness-val">0.00</span>
                     </div>
-                    <input type="range" id="mat-roughness" min="0" max="1" step="0.01" value="0.48">
+                    <input type="range" id="mat-roughness" min="0" max="1" step="0.01" value="0">
 
                     <div class="setting-section-title" style="margin-top:18px">ОСВЕЩЕНИЕ</div>
                     <div class="setting-row"><span class="setting-label">HDRI</span></div>
@@ -188,7 +211,7 @@
                         <option value="studio_small_01_1k.hdr">Студия 01</option>
                         <option value="studio_small_02_1k.hdr">Студия 02</option>
                         <option value="studio_small_04_1k.hdr">Студия 04</option>
-                        <option value="photo_studio_broadway_hall_1k.hdr">Бродвей Холл</option>
+                        <option value="photo_studio_broadway_hall_1k.hdr" selected>Бродвей Холл</option>
                         <option value="">Нейтральное</option>
                         <option value="legacy">Legacy</option>
                     </select>
@@ -210,13 +233,13 @@
                     </div>
                     <div class="setting-row" style="justify-content:space-between;align-items:center;">
                         <span class="setting-label">ПОКАЗАТЬ SKYBOX</span>
-                        <label class="toggle-switch"><input type="checkbox" id="toggle-skybox"><span class="toggle-slider"></span></label>
+                        <label class="toggle-switch"><input type="checkbox" id="toggle-skybox" checked><span class="toggle-slider"></span></label>
                     </div>
                     <div class="setting-row">
                         <span class="setting-label">РАЗМЫТОСТЬ SKYBOX</span>
-                        <span class="setting-value" id="skybox-blur-val">0.0</span>
+                        <span class="setting-value" id="skybox-blur-val">0.2</span>
                     </div>
-                    <input type="range" id="skybox-blur" min="0" max="1" step="0.05" value="0">
+                    <input type="range" id="skybox-blur" min="0" max="1" step="0.05" value="0.2">
 
                     <div class="setting-row" style="margin-top:16px;justify-content:space-between;align-items:center;">
                         <span class="setting-label">FPS</span>
@@ -275,6 +298,36 @@
                 <div id="model-load-status" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,0.4);"></div>
             </div>
 
+            <!-- Camera Target editor -->
+            <div style="margin-top:16px;border-top:1px solid rgba(255,255,255,0.06);padding-top:12px;">
+                <div class="setting-section-title">ТАРГЕТ КАМЕРЫ</div>
+                <div class="setting-row" style="justify-content:space-between;align-items:center;">
+                    <span class="setting-label">ПОКАЗАТЬ ТОЧКУ</span>
+                    <label class="toggle-switch"><input type="checkbox" id="toggle-cam-target"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="settings-grid" style="margin-top:8px;">
+                    <div class="setting-col">
+                        <div class="setting-row">
+                            <span class="setting-label">X</span>
+                            <input type="number" id="cam-target-x" class="num-input" step="0.01" value="0.795">
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Y</span>
+                            <input type="number" id="cam-target-y" class="num-input" step="0.01" value="0.634">
+                        </div>
+                        <div class="setting-row">
+                            <span class="setting-label">Z</span>
+                            <input type="number" id="cam-target-z" class="num-input" step="0.01" value="0.279">
+                        </div>
+                    </div>
+                    <div class="setting-col" style="display:flex;flex-direction:column;gap:8px;justify-content:center;">
+                        <button id="btn-save-cam-target" class="panel-btn btn-orange">ПРИМЕНИТЬ ТАРГЕТ</button>
+                        <button id="btn-persist-cam-target" class="panel-btn btn-green">СОХРАНИТЬ НАВСЕГДА</button>
+                    </div>
+                </div>
+                <div id="cam-target-status" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,0.35);"></div>
+            </div>
+
             <!-- Start camera editor -->
             <div style="margin-top:18px;border-top:1px solid rgba(255,255,255,0.04);padding-top:14px;">
                 <div class="setting-section-title">СТАРТОВАЯ КАМЕРА</div>
@@ -331,7 +384,7 @@
         <button class="bar-btn" id="bar-hotspots" title="Зоны">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </button>
-        <button class="bar-btn" id="bar-settings" title="Настройки">
+        <button class="bar-btn" id="bar-settings" title="Настройки" style="display:none;">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
         </button>
     </div>
@@ -396,5 +449,33 @@
 <video id="video2" src="./video2.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video3" src="./video3.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video4" src="./video4.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
+<!-- Loading screen logic -->
+<script>
+(function() {
+    var viewer  = document.querySelector('#viewer');
+    var bar     = document.getElementById('loader-bar');
+    var pct     = document.getElementById('loader-percent');
+    var screen  = document.getElementById('loading-screen');
+    function dismiss() {
+        if (!screen || screen.classList.contains('fade-out')) return;
+        if (bar) bar.style.width = '100%';
+        if (pct) pct.textContent = '100%';
+        setTimeout(function() {
+            screen.classList.add('fade-out');
+            setTimeout(function() { if (screen && screen.parentNode) screen.remove(); }, 900);
+        }, 400);
+    }
+    if (viewer) {
+        viewer.addEventListener('progress', function(e) {
+            var p = Math.round(e.detail.totalProgress * 100);
+            if (bar) bar.style.width = p + '%';
+            if (pct) pct.textContent = p + '%';
+        });
+        viewer.addEventListener('load', dismiss);
+    }
+    // Fallback: dismiss after 15s
+    setTimeout(dismiss, 15000);
+})();
+</script>
 </body>
 </html>

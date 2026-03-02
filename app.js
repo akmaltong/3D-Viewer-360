@@ -7,9 +7,41 @@ document.addEventListener('DOMContentLoaded', function() {
     var neonMaterials = [];
     var allMaterials = [];
     var editMode = false;
+    var screenMode = false;
 
-    var defaultOrbit = '-109deg 75deg 13.16m';
-    var defaultTarget = '-0.77m 1.46m -0.45m';
+    // Screen mode hint element
+    var screenModeHint = document.createElement('div');
+    screenModeHint.id = 'screen-mode-hint';
+    screenModeHint.textContent = 'Нажмите для смены видео';
+    screenModeHint.style.display = 'none';
+    document.getElementById('app').appendChild(screenModeHint);
+
+    function setScreenMode(on) {
+        screenMode = on;
+        screenModeHint.style.display = on ? '' : 'none';
+        viewer.style.cursor = on ? 'pointer' : '';
+        if (on) {
+            viewer.removeAttribute('camera-controls');
+        } else {
+            viewer.setAttribute('camera-controls', '');
+        }
+    }
+
+    var defaultOrbit = '-101.7deg 93.0deg 15.00m';
+    var defaultTarget = '0.16m 1.88m 0.02m';
+
+    // === FLOOR CLAMP: prevent camera from seeing disc underside ===
+    var FLOOR_Y = -0.2;
+    viewer.addEventListener('camera-change', function() {
+        var orbit = viewer.getCameraOrbit();
+        var target = viewer.getCameraTarget();
+        var camY = target.y + orbit.radius * Math.cos(orbit.phi);
+        if (camY < FLOOR_Y) {
+            var ratio = Math.max(-1, Math.min(1, (FLOOR_Y - target.y) / orbit.radius));
+            var maxPhi = Math.acos(ratio);
+            viewer.setAttribute('camera-orbit', orbit.theta + 'rad ' + maxPhi + 'rad ' + orbit.radius + 'm');
+        }
+    });
 
     // === IDLE TIMER: return camera after 20s ===
     var idleTimer = null;
@@ -21,6 +53,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!editMode) {
                 viewer.cameraOrbit = defaultOrbit;
                 viewer.cameraTarget = defaultTarget;
+                setScreenMode(false);
             }
         }, IDLE_TIMEOUT);
     }
@@ -42,6 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('bar-home').onclick = function() {
             viewer.cameraOrbit = defaultOrbit;
             viewer.cameraTarget = defaultTarget;
+            setScreenMode(false);
             resetIdleTimer();
         };
 
@@ -104,15 +138,15 @@ document.addEventListener('DOMContentLoaded', function() {
             viewer.setAttribute('exposure', 1.1);
             viewer.exposure = 1.1;
             viewer.removeAttribute('auto-rotate');
-            setSlider('video-intensity', 2.7, 'video-int-val');
-            setSlider('neon-intensity', 2, 'neon-val');
-            setSlider('bloom-slider', 0.1, 'bloom-val', true);
-            setSlider('mat-metalness', 0.48, 'mat-metalness-val', true);
-            setSlider('mat-roughness', 0.48, 'mat-roughness-val', true);
+            setSlider('video-intensity', 4.3, 'video-int-val');
+            setSlider('neon-intensity', 20.5, 'neon-val');
+            setSlider('bloom-slider', 0.09, 'bloom-val', true);
+            setSlider('mat-metalness', 0, 'mat-metalness-val', true);
+            setSlider('mat-roughness', 0, 'mat-roughness-val', true);
             setSlider('shadow-range', 2.5, 'shadow-val');
             setSlider('exposure-range', 1.1, 'exposure-val');
             document.getElementById('neon-color').value = '#0055ff';
-            document.getElementById('hdri-select').selectedIndex = 0;
+            document.getElementById('hdri-select').value = 'photo_studio_broadway_hall_1k.hdr';
             document.getElementById('video-select').selectedIndex = 1;
             document.getElementById('neon-color').dispatchEvent(new Event('input'));
             document.getElementById('neon-intensity').dispatchEvent(new Event('input'));
@@ -122,9 +156,10 @@ document.addEventListener('DOMContentLoaded', function() {
             // Reset background
             document.getElementById('toggle-light-bg').checked = false;
             document.getElementById('toggle-light-bg').dispatchEvent(new Event('change'));
-            document.getElementById('toggle-skybox').checked = false;
+            document.getElementById('toggle-skybox').checked = true;
             document.getElementById('toggle-skybox').dispatchEvent(new Event('change'));
-            setSlider('skybox-blur', 0, 'skybox-blur-val');
+            setSlider('skybox-blur', 0.2, 'skybox-blur-val');
+            document.getElementById('skybox-blur').dispatchEvent(new Event('input'));
             resetIdleTimer();
         };
 
@@ -136,11 +171,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         // === Hotspot click → fly camera ===
-        viewer.querySelectorAll('.hotspot').forEach(function(hs) {
+        viewer.querySelectorAll('.hotspot').forEach(function(hs, idx) {
             hs.addEventListener('click', function(e) {
                 if (editMode) { e.stopPropagation(); return; }
                 if (hs.dataset.orbit) viewer.cameraOrbit = hs.dataset.orbit;
                 if (hs.dataset.target) viewer.cameraTarget = hs.dataset.target;
+                setScreenMode(idx === 0); // Экран (hotspot-1) activates screen mode
                 resetIdleTimer();
             });
         });
@@ -155,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (hs.dataset.orbit) viewer.cameraOrbit = hs.dataset.orbit;
                     if (hs.dataset.target) viewer.cameraTarget = hs.dataset.target;
                 }
+                setScreenMode(idx === 0); // ЭКРАН activates screen mode
                 resetIdleTimer();
             });
         });
@@ -228,6 +265,21 @@ document.addEventListener('DOMContentLoaded', function() {
             var sel = document.getElementById('video-select');
             sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
             applyVideoTexture(sel.value);
+        });
+
+        // === Screen mode: single click on viewer switches video ===
+        var viewerPointerDown = false;
+        var viewerDragMoved = false;
+        viewer.addEventListener('pointerdown', function() { viewerPointerDown = true; viewerDragMoved = false; });
+        viewer.addEventListener('pointermove', function() { if (viewerPointerDown) viewerDragMoved = true; });
+        viewer.addEventListener('pointerup', function() { viewerPointerDown = false; });
+        viewer.addEventListener('click', function(e) {
+            if (!screenMode || viewerDragMoved || editMode) return;
+            if (e.target.closest('.hotspot') || e.target.closest('#settings-panel') || e.target.closest('#bottom-bar')) return;
+            var sel = document.getElementById('video-select');
+            sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
+            applyVideoTexture(sel.value);
+            resetIdleTimer();
         });
 
         // === Neon color ===
@@ -774,16 +826,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 var b = parseInt(defHex.substr(5,2),16)/255;
                 neonMaterials.forEach(function(mat) {
                     try { mat.setEmissiveFactor([r, g, b]); } catch(e) {}
-                    try { mat.setEmissiveStrength(2); } catch(e) {}
+                    try { mat.setEmissiveStrength(20.5); } catch(e) {}
                 });
             }
 
             // Apply default metalness/roughness
+            // Skip VideoScreenMaterial and the human character (Material.002 = rp_petra)
             allMaterials.forEach(function(mat) {
                 var n = (mat.name || '').toLowerCase();
-                if (!n.includes('video') && !n.includes('screen')) {
-                    try { mat.pbrMetallicRoughness.setMetallicFactor(0.48); } catch(e) {}
-                    try { mat.pbrMetallicRoughness.setRoughnessFactor(0.48); } catch(e) {}
+                if (!n.includes('video') && !n.includes('screen') && n !== 'material.002') {
+                    try { mat.pbrMetallicRoughness.setMetallicFactor(0); } catch(e) {}
+                    try { mat.pbrMetallicRoughness.setRoughnessFactor(0); } catch(e) {}
                 }
             });
 
@@ -791,6 +844,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (screenMaterial) {
                 applyVideoTexture(document.getElementById('video-select').value);
             }
+
+            // Apply default skybox blur
+            try {
+                var symbols = Object.getOwnPropertySymbols(viewer);
+                var sceneSymbol = symbols.find(function(s) { return s.description === 'scene'; });
+                if (sceneSymbol) {
+                    viewer[sceneSymbol].backgroundBlurriness = 0.2;
+                }
+            } catch(e) {}
 
             // Fix z-fighting: continuously enforce minimum camera near clip
             // model-viewer recalculates near = far/1000 each frame via SmoothControls.updateNearFar
@@ -828,6 +890,204 @@ document.addEventListener('DOMContentLoaded', function() {
             if (xLabel) xLabel.textContent = '700 cm';
             renderDimLines();
         });
+
+        // ============================================================
+        // === CAMERA TARGET GIZMO ===
+        // ============================================================
+        var camTargetDot = viewer.querySelector('[slot="hotspot-cam-target"]');
+        var camTargetGX = viewer.querySelector('[slot="hotspot-cam-target-x"]');
+        var camTargetGY = viewer.querySelector('[slot="hotspot-cam-target-y"]');
+        var camTargetGZ = viewer.querySelector('[slot="hotspot-cam-target-z"]');
+        var camTargetSvg = document.getElementById('camTargetGizmoSvg');
+        var camTargetLineX = document.getElementById('cam-target-line-x');
+        var camTargetLineY = document.getElementById('cam-target-line-y');
+        var camTargetLineZ = document.getElementById('cam-target-line-z');
+        var camTargetToggle = document.getElementById('toggle-cam-target');
+        var camTargetInputX = document.getElementById('cam-target-x');
+        var camTargetInputY = document.getElementById('cam-target-y');
+        var camTargetInputZ = document.getElementById('cam-target-z');
+        var camTargetStatus = document.getElementById('cam-target-status');
+        var CAM_TARGET_GIZMO_OFFSET = 0.4;
+        var camTargetVisible = false;
+        var camTargetDragging = null; // 'x','y','z' or null
+        var camTargetDragStart = null;
+        var camTargetDragPos = null;
+
+        function getCamTargetPos() {
+            var t = viewer.getCameraTarget();
+            return [t.x, t.y, t.z];
+        }
+
+        function setCamTargetPos(pos) {
+            var str = pos[0].toFixed(3) + 'm ' + pos[1].toFixed(3) + 'm ' + pos[2].toFixed(3) + 'm';
+            viewer.cameraTarget = str;
+            defaultTarget = str;
+            camTargetInputX.value = pos[0].toFixed(3);
+            camTargetInputY.value = pos[1].toFixed(3);
+            camTargetInputZ.value = pos[2].toFixed(3);
+            updateCamTargetGizmo(pos);
+        }
+
+        function updateCamTargetGizmo(pos) {
+            if (!pos) pos = getCamTargetPos();
+            var cx = pos[0], cy = pos[1], cz = pos[2];
+            viewer.updateHotspot({ name: 'hotspot-cam-target', position: cx + ' ' + cy + ' ' + cz });
+            viewer.updateHotspot({ name: 'hotspot-cam-target-x', position: (cx + CAM_TARGET_GIZMO_OFFSET) + ' ' + cy + ' ' + cz });
+            viewer.updateHotspot({ name: 'hotspot-cam-target-y', position: cx + ' ' + (cy + CAM_TARGET_GIZMO_OFFSET) + ' ' + cz });
+            viewer.updateHotspot({ name: 'hotspot-cam-target-z', position: cx + ' ' + cy + ' ' + (cz + CAM_TARGET_GIZMO_OFFSET) });
+        }
+
+        function renderCamTargetLines() {
+            if (!camTargetVisible) return;
+            var c = viewer.queryHotspot('hotspot-cam-target');
+            var hx = viewer.queryHotspot('hotspot-cam-target-x');
+            var hy = viewer.queryHotspot('hotspot-cam-target-y');
+            var hz = viewer.queryHotspot('hotspot-cam-target-z');
+            if (c && hx) {
+                camTargetLineX.setAttribute('x1', c.canvasPosition.x);
+                camTargetLineX.setAttribute('y1', c.canvasPosition.y);
+                camTargetLineX.setAttribute('x2', hx.canvasPosition.x);
+                camTargetLineX.setAttribute('y2', hx.canvasPosition.y);
+            }
+            if (c && hy) {
+                camTargetLineY.setAttribute('x1', c.canvasPosition.x);
+                camTargetLineY.setAttribute('y1', c.canvasPosition.y);
+                camTargetLineY.setAttribute('x2', hy.canvasPosition.x);
+                camTargetLineY.setAttribute('y2', hy.canvasPosition.y);
+            }
+            if (c && hz) {
+                camTargetLineZ.setAttribute('x1', c.canvasPosition.x);
+                camTargetLineZ.setAttribute('y1', c.canvasPosition.y);
+                camTargetLineZ.setAttribute('x2', hz.canvasPosition.x);
+                camTargetLineZ.setAttribute('y2', hz.canvasPosition.y);
+            }
+        }
+
+        function showCamTargetGizmo() {
+            camTargetVisible = true;
+            var pos = getCamTargetPos();
+            updateCamTargetGizmo(pos);
+            camTargetInputX.value = pos[0].toFixed(3);
+            camTargetInputY.value = pos[1].toFixed(3);
+            camTargetInputZ.value = pos[2].toFixed(3);
+            camTargetDot.style.display = '';
+            camTargetGX.style.display = '';
+            camTargetGY.style.display = '';
+            camTargetGZ.style.display = '';
+            camTargetSvg.style.display = '';
+            renderCamTargetLines();
+        }
+
+        function hideCamTargetGizmo() {
+            camTargetVisible = false;
+            camTargetDot.style.display = 'none';
+            camTargetGX.style.display = 'none';
+            camTargetGY.style.display = 'none';
+            camTargetGZ.style.display = 'none';
+            camTargetSvg.style.display = 'none';
+        }
+
+        camTargetToggle.onchange = function() {
+            if (this.checked) showCamTargetGizmo();
+            else hideCamTargetGizmo();
+        };
+
+        // Redraw on camera change
+        viewer.addEventListener('camera-change', function() {
+            if (camTargetVisible && !camTargetDragging) {
+                updateCamTargetGizmo();
+                renderCamTargetLines();
+            } else if (camTargetVisible) {
+                renderCamTargetLines();
+            }
+        });
+
+        // Gizmo drag for camera target
+        function getCamTargetAxisScreenDir(axis) {
+            var c = viewer.queryHotspot('hotspot-cam-target');
+            var h = viewer.queryHotspot('hotspot-cam-target-' + axis);
+            if (!c || !h) return { x: 1, y: 0 };
+            var dx = h.canvasPosition.x - c.canvasPosition.x;
+            var dy = h.canvasPosition.y - c.canvasPosition.y;
+            var len = Math.sqrt(dx * dx + dy * dy);
+            if (len < 1) return { x: 1, y: 0 };
+            return { x: dx / len, y: dy / len };
+        }
+
+        function startCamTargetDrag(axis, e) {
+            e.preventDefault();
+            e.stopPropagation();
+            camTargetDragging = axis;
+            camTargetDragStart = { x: e.clientX, y: e.clientY };
+            camTargetDragPos = getCamTargetPos();
+            viewer.removeAttribute('camera-controls');
+            document.body.style.cursor = 'grabbing';
+        }
+
+        camTargetGX.addEventListener('pointerdown', function(e) { startCamTargetDrag('x', e); });
+        camTargetGY.addEventListener('pointerdown', function(e) { startCamTargetDrag('y', e); });
+        camTargetGZ.addEventListener('pointerdown', function(e) { startCamTargetDrag('z', e); });
+
+        document.addEventListener('pointermove', function(e) {
+            if (!camTargetDragging) return;
+            e.preventDefault();
+            var dx = e.clientX - camTargetDragStart.x;
+            var dy = e.clientY - camTargetDragStart.y;
+            var dir = getCamTargetAxisScreenDir(camTargetDragging);
+            var projected = dx * dir.x + dy * dir.y;
+            var sensitivity = 0.005;
+            var delta = projected * sensitivity;
+            var pos = camTargetDragPos.slice();
+            if (camTargetDragging === 'x') pos[0] += delta;
+            if (camTargetDragging === 'y') pos[1] += delta;
+            if (camTargetDragging === 'z') pos[2] += delta;
+            setCamTargetPos(pos);
+        });
+
+        document.addEventListener('pointerup', function() {
+            if (camTargetDragging) {
+                camTargetDragging = null;
+                camTargetDragStart = null;
+                camTargetDragPos = null;
+                viewer.setAttribute('camera-controls', '');
+                document.body.style.cursor = '';
+            }
+        });
+
+        // Number inputs for camera target
+        function applyCamTargetFromInputs() {
+            var x = parseFloat(camTargetInputX.value) || 0;
+            var y = parseFloat(camTargetInputY.value) || 0;
+            var z = parseFloat(camTargetInputZ.value) || 0;
+            setCamTargetPos([x, y, z]);
+        }
+        camTargetInputX.oninput = applyCamTargetFromInputs;
+        camTargetInputY.oninput = applyCamTargetFromInputs;
+        camTargetInputZ.oninput = applyCamTargetFromInputs;
+
+        // Apply button
+        document.getElementById('btn-save-cam-target').onclick = function() {
+            applyCamTargetFromInputs();
+            camTargetStatus.textContent = 'Таргет применён: ' + defaultTarget;
+            camTargetStatus.style.color = '#e67e22';
+        };
+
+        // Persist button — saves to HTML attribute + copies to clipboard
+        document.getElementById('btn-persist-cam-target').onclick = function() {
+            applyCamTargetFromInputs();
+            // Update the HTML attribute on the model-viewer element
+            viewer.setAttribute('camera-target', defaultTarget);
+            var code = 'camera-target="' + defaultTarget + '"';
+            navigator.clipboard.writeText(code).then(function() {
+                camTargetStatus.textContent = 'Сохранено! Скопировано: ' + code;
+                camTargetStatus.style.color = '#28a745';
+            }).catch(function() {
+                camTargetStatus.textContent = 'Сохранено! ' + code;
+                camTargetStatus.style.color = '#28a745';
+            });
+            // Also update the defaultTarget so idle reset uses new value
+            console.log('Camera target persisted:', defaultTarget);
+        };
 
         // Debug helper
         window.applyVideoToMaterial = function(idx, file) {
