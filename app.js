@@ -15,13 +15,30 @@ document.addEventListener('DOMContentLoaded', function() {
     viewer.style.userSelect = 'none';
     document.getElementById('app').style.webkitTapHighlightColor = 'transparent';
 
-    // Prevent default on touchstart to avoid blue selection flash
-    viewer.addEventListener('touchstart', function(e) {
-        if (!e.target.closest('.hotspot') && !e.target.closest('#settings-panel') && !e.target.closest('#bottom-bar')) {
-            // Don't preventDefault to keep camera-controls working, just blur
-            if (document.activeElement && document.activeElement !== document.body) {
-                document.activeElement.blur();
-            }
+    // Inject styles into model-viewer shadow DOM to kill blue highlight
+    function injectShadowStyles() {
+        var shadow = viewer.shadowRoot;
+        if (!shadow) return;
+        var style = document.createElement('style');
+        style.textContent = '*, *::before, *::after { -webkit-tap-highlight-color: transparent !important; outline: none !important; -webkit-touch-callout: none !important; user-select: none !important; -webkit-user-select: none !important; } :focus { outline: none !important; } ::selection { background: transparent !important; }';
+        shadow.appendChild(style);
+    }
+    if (viewer.shadowRoot) {
+        injectShadowStyles();
+    } else {
+        // Wait for shadow root to be available
+        var obs = new MutationObserver(function() {
+            if (viewer.shadowRoot) { injectShadowStyles(); obs.disconnect(); }
+        });
+        obs.observe(viewer, { childList: true, subtree: true });
+        // Fallback
+        setTimeout(injectShadowStyles, 1000);
+    }
+
+    // Prevent default on touchstart on the viewer to stop blue flash
+    viewer.addEventListener('touchstart', function() {
+        if (document.activeElement && document.activeElement !== document.body) {
+            document.activeElement.blur();
         }
     }, { passive: true });
 
