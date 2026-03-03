@@ -14,15 +14,6 @@
 <!-- ============================================ -->
 <div id="loading-screen">
     <div class="loader-ring"></div>
-    <div class="loader-title">VTB Stand</div>
-    <div class="loader-bar-track">
-        <div class="loader-bar-fill" id="loader-bar"></div>
-    </div>
-    <div class="loader-percent" id="loader-percent">0%</div>
-</div>
-
-<div id="loading-screen">
-    <div class="loader-ring"></div>
     <div class="loader-title">VTB STAND</div>
     <div class="loader-bar-track">
         <div class="loader-bar-fill" id="loader-bar"></div>
@@ -401,47 +392,6 @@
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
 
-<!-- Loading screen progress & dismiss -->
-<script>
-(function() {
-    var viewer = document.querySelector('#viewer');
-    var bar    = document.getElementById('loader-bar');
-    var pct    = document.getElementById('loader-percent');
-    var screen = document.getElementById('loading-screen');
-
-    if (viewer) {
-        // Track loading progress
-        viewer.addEventListener('progress', function(e) {
-            var p = Math.round(e.detail.totalProgress * 100);
-            if (bar) bar.style.width = p + '%';
-            if (pct) pct.textContent = p + '%';
-        });
-
-        // Dismiss loading screen when model is ready
-        viewer.addEventListener('load', function() {
-            if (bar) bar.style.width = '100%';
-            if (pct) pct.textContent = '100%';
-            setTimeout(function() {
-                if (screen) screen.classList.add('fade-out');
-                setTimeout(function() {
-                    if (screen && screen.parentNode) screen.remove();
-                }, 900);
-            }, 400);
-        });
-
-        // Fallback: dismiss after 15 seconds max
-        setTimeout(function() {
-            if (screen && !screen.classList.contains('fade-out')) {
-                screen.classList.add('fade-out');
-                setTimeout(function() {
-                    if (screen && screen.parentNode) screen.remove();
-                }, 900);
-            }
-        }, 15000);
-    }
-})();
-</script>
-
 <script type="module" src="app.js"></script>
 
 <!-- Pre-loaded video elements -->
@@ -449,6 +399,7 @@
 <video id="video2" src="./video2.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video3" src="./video3.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
 <video id="video4" src="./video4.mp4" loop muted crossorigin="anonymous" playsinline preload="none" style="display:none"></video>
+
 <!-- Loading screen logic -->
 <script>
 (function() {
@@ -473,7 +424,6 @@
         });
         viewer.addEventListener('load', dismiss);
     }
-    // Fallback: dismiss after 15s
     setTimeout(dismiss, 15000);
 })();
 </script>
