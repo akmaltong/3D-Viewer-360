@@ -9,6 +9,22 @@ document.addEventListener('DOMContentLoaded', function() {
     var editMode = false;
     var screenMode = false;
 
+    // Force disable mobile tap highlight on viewer and all children
+    viewer.style.webkitTapHighlightColor = 'transparent';
+    viewer.style.webkitTouchCallout = 'none';
+    viewer.style.userSelect = 'none';
+    document.getElementById('app').style.webkitTapHighlightColor = 'transparent';
+
+    // Prevent default on touchstart to avoid blue selection flash
+    viewer.addEventListener('touchstart', function(e) {
+        if (!e.target.closest('.hotspot') && !e.target.closest('#settings-panel') && !e.target.closest('#bottom-bar')) {
+            // Don't preventDefault to keep camera-controls working, just blur
+            if (document.activeElement && document.activeElement !== document.body) {
+                document.activeElement.blur();
+            }
+        }
+    }, { passive: true });
+
     // Screen mode hint element
     var screenModeHint = document.createElement('div');
     screenModeHint.id = 'screen-mode-hint';

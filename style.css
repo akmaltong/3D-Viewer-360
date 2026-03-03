@@ -37,6 +37,14 @@ body {
     color: var(--text);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+#app, #app * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    outline: none;
 }
 
 /* ========== LOADING SCREEN ========== */
@@ -169,9 +177,8 @@ model-viewer {
     user-select: none;
     -webkit-user-select: none;
 }
-
-/* Hide default AR button */
 model-viewer::part(default-ar-button) { display: none !important; }
+model-viewer canvas { -webkit-tap-highlight-color: transparent; outline: none; }
 
 /* ============================================================
    BOTTOM TOOLBAR
