@@ -111,11 +111,13 @@
             <line id="gizmo-line-z" stroke="#4488ff" stroke-width="3" stroke-linecap="round"></line>
         </svg>
 
-        <!-- EFFECTS -->
+        <!-- EFFECTS (requires COOP/COEP headers, disabled for GitHub Pages) -->
+        <!--
         <effect-composer render-mode="quality">
             <bloom-effect id="bloom-effect" strength="0.1" threshold="0.5" radius="0.85" smoothing="0.025"></bloom-effect>
             <color-grade-effect id="color-grade" tonemapping="NEUTRAL" brightness="0" contrast="0"></color-grade-effect>
         </effect-composer>
+        -->
     </model-viewer>
 
     <!-- Right-side hotspot nav -->
@@ -390,7 +392,7 @@
 }
 </script>
 <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer-module.min.js"></script>
-<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script>
+<!-- <script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer-effects@1.5.0/dist/model-viewer-effects.min.js"></script> -->
 
 <script type="module" src="app.js"></script>
 
