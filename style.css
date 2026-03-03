@@ -760,18 +760,24 @@ model-viewer canvas { -webkit-tap-highlight-color: transparent; outline: none; }
 /* ========== SCREEN MODE HINT ========== */
 #screen-mode-hint {
     position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.7); color: #d4c49a;
-    padding: 8px 20px; border-radius: 20px;
-    font-size: 12px; font-weight: 600; letter-spacing: 0.5px;
-    z-index: 150; pointer-events: none;
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(200, 180, 130, 0.35);
+    background: rgba(0, 0, 0, 0.75); color: #d4c49a;
+    padding: 10px 24px; border-radius: 24px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+    z-index: 200; pointer-events: auto; cursor: pointer;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(200, 180, 130, 0.4);
     white-space: nowrap;
-    animation: hint-pulse 2s ease-in-out infinite;
+    transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+    font-family: var(--font);
 }
-@keyframes hint-pulse {
-    0%, 100% { opacity: 0.75; }
-    50% { opacity: 1; }
+#screen-mode-hint:hover {
+    background: rgba(200, 180, 130, 0.25);
+    border-color: rgba(200, 180, 130, 0.6);
+    color: #fff;
+}
+#screen-mode-hint:active {
+    transform: translateX(-50%) scale(0.95);
 }
 
 /* ========== HIDE model-viewer default AR button ========== */

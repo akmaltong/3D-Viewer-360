@@ -45,21 +45,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }, { passive: true });
 
     // Screen mode hint element
-    var screenModeHint = document.createElement('div');
+    // Screen mode hint — now a clickable button for switching video
+    var screenModeHint = document.createElement('button');
     screenModeHint.id = 'screen-mode-hint';
-    screenModeHint.textContent = 'Нажмите для смены видео';
+    screenModeHint.textContent = '⟳ СМЕНИТЬ ВИДЕО';
     screenModeHint.style.display = 'none';
     document.getElementById('app').appendChild(screenModeHint);
 
     function setScreenMode(on) {
         screenMode = on;
         screenModeHint.style.display = on ? '' : 'none';
-        viewer.style.cursor = on ? 'pointer' : '';
-        if (on) {
-            viewer.removeAttribute('camera-controls');
-        } else {
-            viewer.setAttribute('camera-controls', '');
-        }
+        // Camera controls stay enabled — no blocking
     }
 
     var defaultOrbit = '-101.7deg 93.0deg 15.00m';
@@ -295,13 +291,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 screenMaterial.pbrMetallicRoughness.setBaseColorFactor([v, v, v, 1]);
             }
         };
-        // dblclick on screen area switches video (works outside screenMode too)
-        viewer.addEventListener('dblclick', function(e) {
-            if (editMode || e.target.closest('.hotspot') || e.target.closest('#settings-panel') || e.target.closest('#bottom-bar')) return;
-            if (!isClickOnScreen(e)) return;
+        // dblclick on screen area — disabled, use button instead
+        // viewer.addEventListener('dblclick', ...);
+
+        // === Video switch button (screen-mode-hint) ===
+        screenModeHint.addEventListener('click', function(e) {
+            e.stopPropagation();
             var sel = document.getElementById('video-select');
             sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
             applyVideoTexture(sel.value);
+            resetIdleTimer();
         });
 
         // === Detect if click/tap hit the screen material ===
@@ -334,21 +333,12 @@ document.addEventListener('DOMContentLoaded', function() {
             return false;
         }
 
-        // === Screen mode: single tap on screen area switches video ===
+        // No more click-to-switch on viewer — only the button switches video
         var viewerPointerDown = false;
         var viewerDragMoved = false;
         viewer.addEventListener('pointerdown', function() { viewerPointerDown = true; viewerDragMoved = false; });
         viewer.addEventListener('pointermove', function() { if (viewerPointerDown) viewerDragMoved = true; });
         viewer.addEventListener('pointerup', function() { viewerPointerDown = false; });
-        viewer.addEventListener('click', function(e) {
-            if (!screenMode || viewerDragMoved || editMode) return;
-            if (e.target.closest('.hotspot') || e.target.closest('#settings-panel') || e.target.closest('#bottom-bar')) return;
-            if (!isClickOnScreen(e)) return;
-            var sel = document.getElementById('video-select');
-            sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
-            applyVideoTexture(sel.value);
-            resetIdleTimer();
-        });
 
         // === Neon color ===
         document.getElementById('neon-color').oninput = function() {
@@ -948,10 +938,10 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch(e) { console.warn('Could not access Three.js camera:', e); }
 
             if (threeCamera) {
-                // Use far/200 instead of far/1000 for much better depth precision
+                // Aggressively clamp near plane to prevent z-fighting on screen
                 function enforceNearClip() {
-                    var minNear = threeCamera.far / 200;
-                    if (minNear < 0.05) minNear = 0.05;
+                    var minNear = threeCamera.far / 100;
+                    if (minNear < 0.1) minNear = 0.1;
                     if (threeCamera.near < minNear) {
                         threeCamera.near = minNear;
                         threeCamera.updateProjectionMatrix();
@@ -959,6 +949,24 @@ document.addEventListener('DOMContentLoaded', function() {
                     requestAnimationFrame(enforceNearClip);
                 }
                 enforceNearClip();
+
+                // Also apply logarithmic depth buffer workaround:
+                // offset screen material slightly to avoid z-fighting
+                try {
+                    threeScene.traverse(function(obj) {
+                        if (obj.material) {
+                            var n = (obj.material.name || '').toLowerCase();
+                            if (n.includes('video') || n.includes('screen')) {
+                                obj.material.polygonOffset = true;
+                                obj.material.polygonOffsetFactor = -1;
+                                obj.material.polygonOffsetUnits = -1;
+                                obj.material.depthWrite = true;
+                                obj.material.needsUpdate = true;
+                                console.log('Applied polygonOffset to:', obj.material.name);
+                            }
+                        }
+                    });
+                } catch(e) { console.warn('polygonOffset failed:', e); }
             }
 
             // Dimension labels
