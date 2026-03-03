@@ -424,42 +424,52 @@ document.addEventListener('DOMContentLoaded', function() {
         function applyVideoTexture(videoFile) {
             if (!screenMaterial || typeof viewer.createVideoTexture !== 'function') return;
             try {
-                // Pause the previously active texture's internal video
-                if (activeTextureVideo) {
-                    activeTextureVideo.pause();
-                    activeTextureVideo = null;
-                }
-
                 // Reuse cached texture or create once (lazy cache)
                 var isNew = !videoTextureCache[videoFile];
                 if (isNew) {
                     videoTextureCache[videoFile] = viewer.createVideoTexture(videoFile);
                 }
-                currentVideoTexture = videoTextureCache[videoFile];
+                var newTexture = videoTextureCache[videoFile];
 
-                // If reusing a cached texture, restart its internal video
-                if (!isNew) {
-                    try {
-                        var el = currentVideoTexture.source.element;
-                        if (el) {
-                            el.currentTime = 0;
-                            el.play().catch(function() {});
-                            activeTextureVideo = el;
-                        }
-                    } catch(e2) {}
-                } else {
-                    // New texture — createVideoTexture already called play()
-                    try {
-                        activeTextureVideo = currentVideoTexture.source.element;
-                    } catch(e2) {}
+                // Get the internal video element
+                var videoEl = null;
+                try { videoEl = newTexture.source.element; } catch(e2) {}
+
+                function doSwap() {
+                    // Pause the previously active texture's internal video
+                    if (activeTextureVideo && activeTextureVideo !== videoEl) {
+                        activeTextureVideo.pause();
+                    }
+                    activeTextureVideo = videoEl;
+                    currentVideoTexture = newTexture;
+                    screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(newTexture);
+                    screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
+                    screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
+                    var vInt = parseFloat(document.getElementById('video-intensity').value);
+                    screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
+                    console.log('Video applied: ' + videoFile);
                 }
 
-                screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(currentVideoTexture);
-                screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
-                screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
-                var vInt = parseFloat(document.getElementById('video-intensity').value);
-                screenMaterial.pbrMetallicRoughness.setBaseColorFactor([vInt, vInt, vInt, 1]);
-                console.log('Video applied: ' + videoFile);
+                if (!isNew && videoEl) {
+                    // Cached: restart and swap immediately (already has frames)
+                    videoEl.currentTime = 0;
+                    videoEl.play().catch(function() {});
+                    doSwap();
+                } else if (videoEl) {
+                    // New texture: wait for first frame before swapping to avoid black flash
+                    if (videoEl.readyState >= 2) {
+                        doSwap();
+                    } else {
+                        videoEl.addEventListener('loadeddata', function onReady() {
+                            videoEl.removeEventListener('loadeddata', onReady);
+                            doSwap();
+                        });
+                        // Fallback: swap after 500ms even if not ready
+                        setTimeout(doSwap, 500);
+                    }
+                } else {
+                    doSwap();
+                }
             } catch(e) { console.warn('Failed to apply video:', e); }
         }
 
