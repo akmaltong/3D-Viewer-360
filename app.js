@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 document.addEventListener('DOMContentLoaded', function() {
     var viewer = document.querySelector('#viewer');
     if (!viewer) { console.error('viewer not found'); return; }
@@ -295,12 +297,56 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         viewer.addEventListener('dblclick', function(e) {
             if (editMode || e.target.closest('.hotspot') || e.target.closest('#settings-panel') || e.target.closest('#bottom-bar')) return;
+            // Only switch video if tapped on the screen area of the model
+            if (!isClickOnScreen(e)) return;
             var sel = document.getElementById('video-select');
             sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
             applyVideoTexture(sel.value);
         });
 
-        // === Screen mode: single click on viewer switches video ===
+        // === Detect if click/tap hit the screen material ===
+        function isClickOnScreen(e) {
+            try {
+                // Try Three.js raycasting to check material name
+                var symbols = Object.getOwnPropertySymbols(viewer);
+                var sceneSymbol = symbols.find(function(s) { return s.description === 'scene'; });
+                if (sceneSymbol) {
+                    var scene = viewer[sceneSymbol];
+                    var camera = scene.getCamera();
+                    var rect = viewer.getBoundingClientRect();
+                    var mouse = new THREE.Vector2(
+                        ((e.clientX - rect.left) / rect.width) * 2 - 1,
+                        -((e.clientY - rect.top) / rect.height) * 2 + 1
+                    );
+                    var raycaster = new THREE.Raycaster();
+                    raycaster.setFromCamera(mouse, camera);
+                    var intersects = raycaster.intersectObjects(scene.children, true);
+                    for (var i = 0; i < intersects.length; i++) {
+                        var mat = intersects[i].object.material;
+                        if (!mat) continue;
+                        var name = (mat.name || '').toLowerCase();
+                        if (name.includes('video') || name.includes('screen') || name.includes('display') || name.includes('monitor')) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            } catch(err) {
+                console.warn('Raycast failed:', err);
+            }
+            // Fallback: position-based check
+            try {
+                var rect2 = viewer.getBoundingClientRect();
+                var hit = viewer.positionAndNormalFromPoint(e.clientX - rect2.left, e.clientY - rect2.top);
+                if (!hit) return false;
+                var p = hit.position;
+                return (p.x > -1.8 && p.x < 0.2 && p.y > 0.4 && p.y < 2.2 && p.z > -0.3 && p.z < 1.2);
+            } catch(err2) {
+                return false;
+            }
+        }
+
+        // === Screen mode: single tap on screen area switches video ===
         var viewerPointerDown = false;
         var viewerDragMoved = false;
         viewer.addEventListener('pointerdown', function() { viewerPointerDown = true; viewerDragMoved = false; });
@@ -309,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
         viewer.addEventListener('click', function(e) {
             if (!screenMode || viewerDragMoved || editMode) return;
             if (e.target.closest('.hotspot') || e.target.closest('#settings-panel') || e.target.closest('#bottom-bar')) return;
+            if (!isClickOnScreen(e)) return;
             var sel = document.getElementById('video-select');
             sel.selectedIndex = (sel.selectedIndex + 1) % sel.options.length;
             applyVideoTexture(sel.value);
