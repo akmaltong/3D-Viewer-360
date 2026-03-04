@@ -517,6 +517,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (map) {
                                             map.repeat.x = -1;
                                             map.offset.x = 1;
+                                            map.repeat.y = -1;
+                                            map.offset.y = 1;
                                             map.needsUpdate = true;
                                         }
                                     }
