@@ -517,10 +517,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (map) {
                                             map.wrapS = THREE.ClampToEdgeWrapping;
                                             map.wrapT = THREE.ClampToEdgeWrapping;
-                                            map.repeat.x = 1;
-                                            map.offset.x = 0;
-                                            map.repeat.y = -1.4;
-                                            map.offset.y = 1.2;
+                                            // Screen aspect ~1.52:1, video 16:9 (~1.78:1)
+                                            // Squeeze horizontally to fit, flip Y
+                                            map.repeat.x = 1.17;
+                                            map.offset.x = -0.085;
+                                            map.repeat.y = -1.3;
+                                            map.offset.y = 1.15;
                                             map.needsUpdate = true;
                                         }
                                     }
