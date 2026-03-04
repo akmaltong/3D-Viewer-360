@@ -519,8 +519,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                             map.wrapT = THREE.ClampToEdgeWrapping;
                                             map.repeat.x = 0.85;
                                             map.offset.x = 0.075;
-                                            map.repeat.y = -1.3;
-                                            map.offset.y = 1.15;
+                                            map.repeat.y = -1.1;
+                                            map.offset.y = 1.05;
                                             map.needsUpdate = true;
                                         }
                                     }
