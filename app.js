@@ -515,15 +515,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (n.includes('video') || n.includes('screen')) {
                                         var map = obj.material.map;
                                         if (map) {
-                                            // Clamp texture to edge so it doesn't stretch beyond screen
                                             map.wrapS = THREE.ClampToEdgeWrapping;
                                             map.wrapT = THREE.ClampToEdgeWrapping;
                                             map.repeat.x = 1;
                                             map.offset.x = 0;
-                                            map.repeat.y = -1;
-                                            map.offset.y = 1;
-                                            map.center.set(0, 0);
-                                            map.rotation = 0;
+                                            map.repeat.y = -1.4;
+                                            map.offset.y = 1.2;
                                             map.needsUpdate = true;
                                         }
                                     }
