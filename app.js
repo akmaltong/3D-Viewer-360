@@ -517,10 +517,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (map) {
                                             map.wrapS = THREE.ClampToEdgeWrapping;
                                             map.wrapT = THREE.ClampToEdgeWrapping;
-                                            // Screen aspect ~1.52:1, video 16:9 (~1.78:1)
-                                            // Squeeze horizontally to fit, flip Y
-                                            map.repeat.x = 1.17;
-                                            map.offset.x = -0.085;
+                                            map.repeat.x = 0.85;
+                                            map.offset.x = 0.075;
                                             map.repeat.y = -1.3;
                                             map.offset.y = 1.15;
                                             map.needsUpdate = true;
