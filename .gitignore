@@ -6,4 +6,8 @@ model-viewer-effects.js
 model-viewer-effects.umd.js
 package.json
 package-lock.json
+*.ply
+dist.rar
+dist/
+video for VTB/
 

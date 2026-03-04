@@ -517,10 +517,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                         if (map) {
                                             map.wrapS = THREE.ClampToEdgeWrapping;
                                             map.wrapT = THREE.ClampToEdgeWrapping;
-                                            map.repeat.x = 0.85;
-                                            map.offset.x = 0.075;
-                                            map.repeat.y = -1.1;
-                                            map.offset.y = 1.05;
+                                            map.repeat.x = 1;
+                                            map.offset.x = 0;
+                                            map.repeat.y = -1;
+                                            map.offset.y = 1;
                                             map.needsUpdate = true;
                                         }
                                     }
