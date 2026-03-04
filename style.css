@@ -759,10 +759,10 @@ model-viewer canvas { -webkit-tap-highlight-color: transparent; outline: none; }
 
 /* ========== SCREEN MODE HINT ========== */
 #screen-mode-hint {
-    position: absolute; bottom: 95px; left: 50%; transform: translateX(-50%);
+    position: absolute; bottom: 115px; left: 50%; transform: translateX(-50%);
     background: rgba(0, 0, 0, 0.75); color: #d4c49a;
-    padding: 10px 24px; border-radius: 24px;
-    font-size: 13px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 12px 28px; border-radius: 24px;
+    font-size: 15px; font-weight: 700; letter-spacing: 0.5px;
     z-index: 200; pointer-events: auto; cursor: pointer;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(200, 180, 130, 0.4);

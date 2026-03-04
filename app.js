@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Screen mode hint — now a clickable button for switching video
     var screenModeHint = document.createElement('button');
     screenModeHint.id = 'screen-mode-hint';
-    screenModeHint.textContent = '⟳ СМЕНИТЬ ВИДЕО';
+    screenModeHint.innerHTML = '<span style="font-size:22px;vertical-align:middle;margin-right:6px;">⟳</span> СМЕНИТЬ ВИДЕО';
     screenModeHint.style.display = 'none';
     document.getElementById('app').appendChild(screenModeHint);
 
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
             viewer.setAttribute('exposure', 1.1);
             viewer.exposure = 1.1;
             viewer.removeAttribute('auto-rotate');
-            setSlider('video-intensity', 4.3, 'video-int-val');
+            setSlider('video-intensity', 2.2, 'video-int-val');
             setSlider('neon-intensity', 20.5, 'neon-val');
             setSlider('bloom-slider', 0.09, 'bloom-val', true);
             setSlider('mat-metalness', 0, 'mat-metalness-val', true);
@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setSlider('exposure-range', 1.1, 'exposure-val');
             document.getElementById('neon-color').value = '#0055ff';
             document.getElementById('hdri-select').value = 'photo_studio_broadway_hall_1k.hdr';
-            document.getElementById('video-select').selectedIndex = 1;
+            document.getElementById('video-select').selectedIndex = 0;
             document.getElementById('neon-color').dispatchEvent(new Event('input'));
             document.getElementById('neon-intensity').dispatchEvent(new Event('input'));
             document.getElementById('mat-metalness').dispatchEvent(new Event('input'));
@@ -388,6 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
             allMaterials.forEach(function(mat) {
                 var n = (mat.name || '').toLowerCase();
                 if (n.includes('video') || n.includes('screen')) return;
+                if (n === 'material.001.1001' || n === 'chrome' || n.includes('hrom')) return;
+                if (n.includes('emissive') || n.includes('neon') || n.includes('glow') || n.includes('led')) return;
                 if (prop === 'metalness') mat.pbrMetallicRoughness.setMetallicFactor(val);
                 else mat.pbrMetallicRoughness.setRoughnessFactor(val);
             });
@@ -931,6 +933,18 @@ document.addEventListener('DOMContentLoaded', function() {
             allMaterials.forEach(function(mat) {
                 var n = (mat.name || '').toLowerCase();
                 if (!n.includes('video') && !n.includes('screen') && n !== 'material.002') {
+                    // Chrome materials — force high metalness for HDR reflections
+                    if (n === 'chrome' || n.includes('hrom')) {
+                        try { mat.pbrMetallicRoughness.setMetallicFactor(1); } catch(e) {}
+                        try { mat.pbrMetallicRoughness.setRoughnessFactor(0.05); } catch(e) {}
+                        console.log('Chrome material forced: "' + mat.name + '" metal=1 rough=0.05');
+                        return;
+                    }
+                    // Skip emissive/neon materials — don't touch their PBR
+                    if (n.includes('emissive') || n.includes('neon') || n.includes('glow') || n.includes('led')) {
+                        console.log('Keeping PBR for emissive material: "' + mat.name + '"');
+                        return;
+                    }
                     try { mat.pbrMetallicRoughness.setMetallicFactor(0); } catch(e) {}
                     try { mat.pbrMetallicRoughness.setRoughnessFactor(0); } catch(e) {}
                 }

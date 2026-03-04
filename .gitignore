@@ -8,6 +8,7 @@ package.json
 package-lock.json
 *.ply
 dist.rar
+*.rar
 dist/
 video for VTB/
 
