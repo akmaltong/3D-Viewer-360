@@ -515,11 +515,11 @@ document.addEventListener('DOMContentLoaded', function() {
                                     if (n.includes('video') || n.includes('screen')) {
                                         var map = obj.material.map;
                                         if (map) {
-                                            // Scale down and center video to fit screen frame
-                                            map.repeat.x = 0.75;
-                                            map.offset.x = 0.125;
-                                            map.repeat.y = -0.75;
-                                            map.offset.y = 0.875;
+                                            // Only flip Y, keep original scale
+                                            map.repeat.x = 1;
+                                            map.offset.x = 0;
+                                            map.repeat.y = -1;
+                                            map.offset.y = 1;
                                             map.needsUpdate = true;
                                         }
                                     }
