@@ -501,6 +501,30 @@ document.addEventListener('DOMContentLoaded', function() {
                     activeTextureVideo = videoEl;
                     currentVideoTexture = newTexture;
                     screenMaterial.pbrMetallicRoughness.baseColorTexture.setTexture(newTexture);
+
+                    // Flip video texture horizontally (mirror UV) to fix mirrored text
+                    try {
+                        // Access Three.js texture via scene traversal
+                        var symbols = Object.getOwnPropertySymbols(viewer);
+                        var sceneSymbol = symbols.find(function(s) { return s.description === 'scene'; });
+                        if (sceneSymbol) {
+                            var scene = viewer[sceneSymbol];
+                            scene.traverse(function(obj) {
+                                if (obj.material) {
+                                    var n = (obj.material.name || '').toLowerCase();
+                                    if (n.includes('video') || n.includes('screen')) {
+                                        var map = obj.material.map;
+                                        if (map) {
+                                            map.repeat.x = -1;
+                                            map.offset.x = 1;
+                                            map.needsUpdate = true;
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    } catch(e3) { console.warn('UV flip failed:', e3); }
+
                     screenMaterial.pbrMetallicRoughness.setMetallicFactor(0);
                     screenMaterial.pbrMetallicRoughness.setRoughnessFactor(1);
                     var vInt = parseFloat(document.getElementById('video-intensity').value);
